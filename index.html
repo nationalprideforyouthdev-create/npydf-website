@@ -1,0 +1,194 @@
+<!DOCTYPE html><html><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>National Pride for Youth Development Foundation | NPYDF</title><script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>:root{--n:#0A2A5E;--s:#1E9ACD;--g:#FFC107}body{font-family:system-ui;background:#F0F7F8}
+.card{background:#fff;border-radius:16px;padding:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);border-top:4px solid var(--s)}
+.page{display:none}.page.active{display:block}input,select,textarea{width:100%;padding:10px;border:1px solid #E2E8F0;border-radius:10px;margin-top:5px}
+.btn{background:var(--g);color:var(--n);padding:10px 16px;border-radius:99px;font-weight:800}
+.btn-n{background:var(--n);color:#fff;padding:10px 16px;border-radius:99px;font-weight:800}
+#botBtn{position:fixed;bottom:16px;right:16px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--n),var(--s));color:#fff;font-size:24px;border:3px solid var(--g);z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+#botBox{position:fixed;bottom:80px;right:12px;width:330px;max-width:92vw;height:440px;max-height:70vh;background:#fff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:99;display:none;flex-direction:column;overflow:hidden}
+.msg{max-width:85%;padding:8px 10px;border-radius:12px;font-size:13px;margin:3px}.b{background:#EAF4FF}.u{background:var(--g);color:var(--n);margin-left:auto;font-weight:600}</style>
+
+<style id="npydf-redesign">
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap');
+:root{
+  --n:#102b57;--s:#168db8;--g:#f5bd35;--ink:#172b45;--muted:#61738a;
+  --paper:#f4f7fb;--line:#e4eaf2;--white:#fff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif!important;background:var(--paper)!important;color:var(--ink);max-width:100%!important;padding:0!important;margin:0 auto}
+body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 8% 8%,rgba(22,141,184,.10),transparent 27%),radial-gradient(circle at 92% 30%,rgba(245,189,53,.10),transparent 25%)}
+header{padding:18px clamp(16px,4vw,42px)!important;border-radius:0 0 24px 24px!important;box-shadow:0 10px 30px rgba(16,43,87,.16);background:linear-gradient(120deg,#102b57 0%,#145b89 58%,#168db8 100%)!important}
+header>b{font-family:Manrope,sans-serif;font-size:clamp(17px,2vw,22px);letter-spacing:-.5px}
+header>span{display:inline-block;margin-left:8px;font-weight:800;letter-spacing:.4px}
+#nav{gap:7px!important;margin-top:14px!important}
+#nav a{padding:9px 14px!important;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10)!important;transition:.2s;text-decoration:none;font-size:12px!important}
+#nav a:hover,#nav a:focus{background:#fff!important;color:var(--n)!important;transform:translateY(-1px)}
+main{max-width:1120px;margin:0 auto;padding:28px clamp(14px,3vw,28px) 10px!important;min-height:60vh}
+.page{animation:pageIn .28s ease both}
+@keyframes pageIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+h1,h2,h3{font-family:Manrope,'DM Sans',sans-serif;letter-spacing:-.7px;color:var(--n)}
+h2{font-size:clamp(23px,3vw,30px)!important;margin:4px 0 14px}
+.card{background:rgba(255,255,255,.96)!important;border:1px solid var(--line)!important;border-top:3px solid var(--s)!important;border-radius:18px!important;padding:18px!important;box-shadow:0 8px 24px rgba(16,43,87,.055)!important;transition:transform .2s,box-shadow .2s}
+.card:hover{box-shadow:0 12px 30px rgba(16,43,87,.09)!important}
+#p-home>div:first-child{position:relative;overflow:hidden;text-align:left!important;padding:clamp(28px,6vw,58px)!important;border-radius:26px!important;min-height:260px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;background:linear-gradient(115deg,#102b57 0%,#145b89 58%,#168db8 100%)!important;box-shadow:0 18px 42px rgba(16,43,87,.2)}
+#p-home>div:first-child:after{content:"";position:absolute;width:300px;height:300px;border:1px solid rgba(255,255,255,.14);border-radius:50%;right:-55px;top:-115px;box-shadow:0 0 0 35px rgba(255,255,255,.035),0 0 0 75px rgba(255,255,255,.025)}
+#p-home h1{color:#fff!important;font-size:clamp(36px,7vw,62px)!important;line-height:1.06;max-width:700px;position:relative;z-index:1}
+#p-home h1 span{color:var(--g)!important}
+#p-home>div:first-child p{font-size:15px!important;color:rgba(255,255,255,.82);margin-top:12px;letter-spacing:.2px;position:relative;z-index:1}
+#p-home>div:first-child>div{position:relative;z-index:1;margin-top:24px!important;display:flex;flex-wrap:wrap;gap:9px}
+.btn,.btn-n{padding:12px 19px!important;border-radius:999px!important;font-size:13px!important;letter-spacing:.2px;transition:transform .18s,filter .18s;cursor:pointer}
+.btn{background:var(--g)!important;color:var(--n)!important;box-shadow:0 5px 14px rgba(245,189,53,.2)}
+.btn-n{background:var(--n)!important;color:#fff!important;box-shadow:0 5px 14px rgba(16,43,87,.14)}
+.btn:hover,.btn-n:hover{transform:translateY(-2px);filter:brightness(1.04)}
+#stats{gap:12px!important;margin-top:18px!important}
+#stats .card{text-align:left!important;padding:20px!important;border-top:0!important;position:relative}
+#stats .card b{font-family:Manrope,sans-serif;font-size:30px!important;color:var(--s)!important}
+#stats .card br{display:none}
+#stats .card{font-size:12px;font-weight:700;color:var(--muted)}
+#latestYouth{margin-top:14px!important;line-height:1.9}
+input,select,textarea{font:inherit!important;color:var(--ink)!important;background:#fff!important;border:1px solid #dce4ee!important;border-radius:12px!important;padding:12px 14px!important;margin-top:8px!important;outline:none;transition:border .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--s)!important;box-shadow:0 0 0 3px rgba(22,141,184,.12)!important}
+textarea{min-height:100px;resize:vertical}
+button{font-family:inherit}
+#p-join .card{padding:20px!important}
+#p-join .flex button{min-height:44px}
+#p-programs .card{padding:22px!important}
+#p-programs .card b{font-family:Manrope,sans-serif;color:var(--n);font-size:17px}
+#p-team #team{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+#p-team #team br{display:none}
+#p-team #team{line-height:1.4}
+#p-team #team{color:var(--muted)}
+#p-team #team::first-line{color:var(--ink)}
+#p-donate .card{font-size:17px;line-height:2}
+#p-admin .card{border-radius:16px!important}
+#sNav{border:1px solid var(--line);box-shadow:0 5px 18px rgba(16,43,87,.05)}
+#sNav button{padding:13px 8px!important;color:var(--n)}
+#sNav button:hover{background:#edf5fa}
+#botBtn{width:60px!important;height:60px!important;bottom:22px!important;right:22px!important;background:linear-gradient(135deg,var(--n),var(--s))!important;border:3px solid var(--g)!important;box-shadow:0 10px 28px rgba(16,43,87,.28)!important}
+#botBox{border:1px solid var(--line);border-radius:22px!important;box-shadow:0 20px 60px rgba(16,43,87,.24)!important}
+.msg{padding:10px 13px!important;border-radius:15px!important;line-height:1.5}
+.msg.b{background:#edf4fb!important;color:var(--ink)}
+.msg.u{background:#ffedbd!important;color:var(--n)}
+footer{max-width:1120px;margin:26px auto 0!important;padding:24px!important;border-radius:24px 24px 0 0!important;background:#102b57!important;line-height:1.8}
+a,button{ -webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid rgba(245,189,53,.8);outline-offset:2px}
+@media(min-width:700px){
+  #p-join{max-width:820px;margin:0 auto}
+  #p-home>div:first-child{min-height:310px}
+  #p-programs #progs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+  header{border-radius:0 0 18px 18px!important;padding:15px!important}
+  #nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))}
+  #nav a{text-align:center;padding:9px 5px!important;font-size:11px!important}
+  main{padding-top:18px!important}
+  #p-home>div:first-child{padding:25px 20px!important;min-height:250px}
+  #p-home>div:first-child>div{gap:7px}
+  #p-home>div:first-child>div button{padding:10px 13px!important;font-size:12px!important}
+  #stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card{padding:15px!important}
+  #botBox{right:4vw!important;width:92vw!important;bottom:88px!important}
+  footer{margin-top:20px!important;border-radius:18px 18px 0 0!important}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+
+</head><body class="max-w-[1100px] mx-auto px-2">
+<header style="background:linear-gradient(135deg,var(--n),var(--s));color:#fff" class="p-3 rounded-b-xl sticky top-0 z-50">
+<b>National Pride for Youth Development Foundation</b> <span style="background:var(--g);color:var(--n)" class="px-2 py-1 rounded-full text-xs">Chipata</span>
+<nav id="nav" class="flex flex-wrap gap-1 mt-2 text-xs font-bold"></nav></header>
+<main class="pt-2">
+<section id="p-home" class="page active"><div style="background:linear-gradient(135deg,var(--n),var(--s));color:#fff" class="p-4 rounded-xl text-center"><h1 class="text-3xl font-black">Learn. Earn. <span style="color:var(--g)">Rise.</span></h1><p class="text-sm">12 Weeks | 51 Lessons | 120 Hours</p><div class="mt-2"><button class="btn" onclick="go('join')">Apply Now</button> <button class="btn-n" onclick="go('admin')">Admin</button> <button class="btn" onclick="toggleBot()">Chat Bot</button></div></div>
+<div class="grid grid-cols-2 gap-2 mt-2" id="stats"></div><div id="latestYouth" class="card mt-2 text-xs"></div></section>
+<section id="p-programs" class="page"><h2 class="font-black">Programs</h2><div id="progs" class="grid gap-2 mt-2"></div></section>
+<section id="p-join" class="page"><h2 class="font-black">Join Us - To ED</h2><p class="text-xs">Total <b id="tA">0</b> | Youth <b id="yA">0</b> | Vol <b id="vA">0</b></p>
+<div class="flex gap-2 mt-2"><button class="btn-n flex-1" onclick="jt('y')">Youth</button><button class="btn flex-1" onclick="jt('v')">Volunteer</button></div>
+<div id="jy" class="card mt-2"><input id="yN" placeholder="Name *"><input id="yAg" type="number" placeholder="Age *"><input id="yPh" placeholder="Phone *"><input id="yVi" placeholder="Village *"><select id="yPr"><option>Pride Pathway</option><option>Pride Lady</option><option>Innovation Hub</option><option>Pride Farms</option></select><textarea id="yWh" placeholder="Why join? *"></textarea><button class="btn-n w-full mt-2" onclick="sY()">SUBMIT YOUTH TO ED</button></div>
+<div id="jv" class="card mt-2 hidden"><input id="vN" placeholder="Name *"><input id="vAg" type="number" placeholder="Age *"><input id="vPh" placeholder="Phone *"><input id="vVi" placeholder="Village *"><select id="vSk"><option>Teaching</option><option>Tailoring</option><option>Computer</option><option>Farming</option></select><textarea id="vWh" placeholder="Why volunteer? *"></textarea><button class="btn-n w-full mt-2" onclick="sV()">SUBMIT VOLUNTEER TO ED</button></div></section>
+<section id="p-admin" class="page"><div class="card" style="background:linear-gradient(135deg,var(--n),var(--s));color:#fff"><b>SUPER APP - Admin</b><div class="flex gap-2 mt-2"><select id="log" onchange="log()" class="text-black"><option value="">--Login--</option></select><button onclick="logout()" class="bg-white/20 px-2 rounded text-xs">Logout</button></div><div id="wb" class="hidden mt-2 bg-yellow-400 text-[#0A2A5E] p-2 rounded text-xs font-bold"></div></div>
+<div class="flex bg-white rounded-xl overflow-hidden mt-2" id="sNav"></div>
+<div id="s-home"><div class="card mt-2"><b>Payroll K24,900</b><div class="text-xs">NAPSA K1,245 | NET K23,655 | Pay 28th</div></div><div class="card mt-2"><b>Quick Forms</b><div id="qf" class="grid grid-cols-2 gap-2 mt-2"></div></div><div id="my" class="card mt-2 text-xs"></div><div id="botApps" class="card mt-2 text-xs"></div></div>
+<div id="s-forms" class="hidden"><h3 class="font-black">Forms - To ED + WhatsApp</h3><select id="fO" onchange="uF()"></select><select id="fT"></select><input id="fTi" placeholder="Title"><input id="fAm" type="number" value="0" placeholder="Amount K"><textarea id="fDe" placeholder="Details"></textarea><select id="fSub"></select><button class="btn-n w-full mt-2" onclick="sF()">SUBMIT TO ED + WHATSAPP</button><div id="allF" class="card mt-2 text-xs"></div></div>
+<div id="s-ed" class="hidden"><div class="p-2 rounded-xl font-black text-center mt-2" style="background:var(--g)">ED - Pending <span id="pC">0</span> | Youth <span id="pY">0</span> | Vol <span id="pV">0</span><br><span class="text-xs font-normal">Only Francis Banda can Approve</span></div><div id="edL" class="space-y-2 mt-2"></div></div>
+<div id="s-hrm" class="hidden"><div id="stL" class="space-y-2 mt-2"></div></div></section>
+<section id="p-team" class="page"><h2 class="font-black">Team - 21 Members</h2><div id="team" class="text-xs mt-2"></div></section>
+<section id="p-donate" class="page"><h2 class="font-black">Donate</h2><div class="card mt-2">K500 Toolkit | K1,000 Internet | K2,000 Seeds</div></section>
+</main>
+<footer style="background:var(--n);color:#fff" class="p-3 text-center mt-4 rounded-t-xl text-xs">NPYDF - Chipata - Kasenengwa - info@npydf.org.zm - +260 77 1319147</footer>
+<!-- CHAT BOT -->
+<button id="botBtn" aria-label="Open NPYDF chat assistant" title="Chat with NPYDF" onclick="toggleBot()">💬</button>
+<div id="botBox"><div style="background:linear-gradient(135deg,var(--n),var(--s));color:#fff" class="p-3 flex justify-between items-center"><div><b>NPYDF Bot</b><div class="text-xs opacity-80">Online - Replies instantly</div></div><button onclick="toggleBot()" class="bg-white/20 px-2 rounded">X</button></div>
+<div id="chat" class="flex-1 overflow-auto p-2 flex flex-col"></div>
+<div class="p-2 flex gap-2 border-t"><input id="chatIn" aria-label="Message to NPYDF assistant" placeholder="Type 1, 2, 3, 4, 5 or Hi..." onkeypress="if(event.key==='Enter')sendChat()"><button class="btn-n" onclick="sendChat()">Send</button></div>
+<div class="flex gap-1 px-2 pb-2"><button onclick="quickChat('1')" class="text-xs bg-yellow-100 px-2 py-1 rounded-full font-bold">1 Join</button><button onclick="quickChat('2')" class="text-xs bg-blue-100 px-2 py-1 rounded-full font-bold">2 Volunteer</button><button onclick="quickChat('3')" class="text-xs bg-green-100 px-2 py-1 rounded-full font-bold">3 Programs</button><button onclick="quickChat('4')" class="text-xs bg-orange-100 px-2 py-1 rounded-full font-bold">4 Donate</button><button onclick="quickChat('5')" class="text-xs bg-gray-100 px-2 py-1 rounded-full font-bold">5 Staff</button></div></div>
+<script>
+const ED="260771319147",STAFF=[["NPYDF-001","Francis Banda",4000],["NPYDF-002","Ishmael Banda",2800],["NPYDF-003","Artness Banda",2500],["NPYDF-004","Yvonne Mumba",2800],["NPYDF-005","Annie Mwanza",2500],["NPYDF-006","Victor Mwale",2000],["NPYDF-007","Marcel Banda",2800],["NPYDF-008","Esmelly Mwanza",1500],["NPYDF-009","Jessy Nyirongo",3000],["NPYDF-010","Lidya Nkhoma",1000]],FORMS={"ED Office":["Policy Approval","Budget Approval"],"HR Office":["Leave Request","Volunteer Registration"],"Finance Office":["Payment Request","Petty Cash Request"],"Programs Office":["Training Report","Youth Application"],"Fundraising Office":["Donor Proposal"],"Operations Office":["Fuel Request","Transport Request"],"Stores Office":["Stock Request"],"Safeguarding":["Complaint / Feedback"]},PAGES=[["home","Home"],["programs","Programs"],["join","Join Us"],["team","Team"],["donate","Donate"],["admin","Admin"]];
+let user=null,a=JSON.parse(localStorage.getItem("a")||"[]"),botStep="menu",botData={};
+function sv(){localStorage.setItem("a",JSON.stringify(a))}
+function go(p){document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));document.getElementById("p-"+p).classList.add("active")}
+function sh(s){["home","forms","ed","hrm"].forEach(x=>{let e=document.getElementById("s-"+x);if(e)e.classList.add("hidden")});let e=document.getElementById("s-"+s);if(e)e.classList.remove("hidden")}
+function jt(t){document.getElementById("jy").classList.toggle("hidden",t!="y");document.getElementById("jv").classList.toggle("hidden",t!="v")}
+function v(id){return document.getElementById(id).value.trim()}
+function nED(it){window.open(`https://wa.me/${ED}?text=`+encodeURIComponent(`NEW NPYDF FORM\n${it.o} - ${it.ty}\n${it.t}\nFrom ${it.sub}\nAmount K${it.amt}\n${it.d}`),"_blank")}
+function log(){let n=document.getElementById("log").value;user=STAFF.find(s=>s[1]==n);if(!user)return;document.getElementById("wb").classList.remove("hidden");document.getElementById("wb").innerHTML=`Welcome ${user[1]} | K${user[2]} | Pay 28th`;document.getElementById("fSub").value=n;my()}
+function logout(){user=null;document.getElementById("log").value="";document.getElementById("wb").classList.add("hidden")}
+// --- BOT ---
+function toggleBot(){let b=document.getElementById("botBox");let open=b.style.display==="flex";b.style.display=open?"none":"flex";if(!open&&document.getElementById("chat").innerHTML==""){botSay("Hello! Welcome to NPYDF - Learn. Earn. Rise. 🇿🇲");botSay("Reply with a number:\n1 - Join Us (Youth)\n2 - Volunteer\n3 - Programs\n4 - Donate\n5 - Talk to Staff\nType MENU anytime to restart.");}}
+function botSay(t){let c=document.getElementById("chat");c.innerHTML+=`<div class="msg b">${t.replace(/\n/g,"<br>")}</div>`;c.scrollTop=c.scrollHeight}
+function userSay(t){let c=document.getElementById("chat");c.innerHTML+=`<div class="msg u">${t}</div>`;c.scrollTop=c.scrollHeight}
+function quickChat(t){document.getElementById("chatIn").value=t;sendChat()}
+function sendChat(){let inp=document.getElementById("chatIn");let txt=inp.value.trim();if(!txt)return;userSay(txt);inp.value="";setTimeout(()=>botReply(txt),400)}
+function botReply(txt){
+let low=txt.toLowerCase();
+if(low==="menu"||low==="hi"||low==="hello"||low==="hey"){botStep="menu";botSay("Main Menu:\n1 - Join Us\n2 - Volunteer\n3 - Programs\n4 - Donate\n5 - Talk to Staff");return}
+if(botStep==="menu"){
+if(txt==="1"){botStep="y_name";botData={type:"Youth"};botSay("Great! Let's apply for Youth. What is your Full Name?");return}
+if(txt==="2"){botStep="v_name";botData={type:"Volunteer"};botSay("Great! Let's apply as Volunteer. What is your Full Name?");return}
+if(txt==="3"){botSay("Our 4 Programs:\n1. Pride Pathway - Life Skills, Jobs, CV\n2. Pride Lady - Tailoring, SILC, K3,500 saved\n3. Innovation Hub - Computer, AI, 30 students\n4. Pride Farms - Maize 2 Tons, 15 youth\n\nType 1 to Join, or MENU to go back.");return}
+if(txt==="4"){botSay("Thank you! Donate:\nK500 - Toolkit for 1 Graduate\nK1,000 - 1 Month Internet\nK2,000 - Seeds + Chickens\n\nReply DONATE + Amount, e.g. DONATE 500. Or go to Donate page.");return}
+if(txt==="5"){botSay("Staff Contacts:\nPrograms: Jessy Nyirongo\nDonors/Media: Marcel Banda\nWhatsApp: +260 77 1319147\nEmail: info@npydf.org.zm\nOr type your message and we will forward to ED.");return}
+if(low.startsWith("donate")){botSay("Thank you! We will contact you for payment. Type MENU to continue.");return}
+botSay("Sorry, I didn't understand. Type MENU or tap 1, 2, 3, 4, 5.");return}
+// YOUTH FLOW
+if(botStep==="y_name"){botData.name=txt;botStep="y_age";botSay(`Thanks ${txt}! How old are you?`);return}
+if(botStep==="y_age"){botData.age=txt;botStep="y_village";botSay("Which Village / Compound? e.g. Kasenengwa");return}
+if(botStep==="y_village"){botData.village=txt;botStep="y_phone";botSay("Your Phone / WhatsApp number?");return}
+if(botStep==="y_phone"){botData.phone=txt;botStep="y_prog";botSay("Choose Program - type: Pathway / Lady / Hub / Farms");return}
+if(botStep==="y_prog"){botData.prog=txt;botStep="y_why";botSay("Why do you want to join?");return}
+if(botStep==="y_why"){botData.why=txt;let it={t:`[BOT Youth] ${botData.name} - ${botData.prog}`,f:`${botData.name} (Bot Youth) - Programs`,d:`Age ${botData.age} | Phone ${botData.phone} | Village ${botData.village} | Program ${botData.prog} | Why ${botData.why}`,s:"Pending",o:"Programs Office",ty:"Youth Application",amt:0,sub:botData.name,phone:botData.phone};a.unshift(it);sv();ren();botSay(`✅ Done ${botData.name}! Application sent to ED Francis Banda. We will WhatsApp you in 48 hours on ${botData.phone}. Learn. Earn. Rise.`);botSay("Type MENU for main menu or 5 to talk to staff.");botStep="menu";let b2=document.getElementById("botApps");if(b2)b2.innerHTML="🤖 New Bot Application: "+botData.name+" - "+botData.prog;return}
+// VOLUNTEER FLOW
+if(botStep==="v_name"){botData.name=txt;botStep="v_age";botSay(`Thanks ${txt}! How old are you?`);return}
+if(botStep==="v_age"){botData.age=txt;botStep="v_village";botSay("Which Village?");return}
+if(botStep==="v_village"){botData.village=txt;botStep="v_phone";botSay("Your Phone / WhatsApp?");return}
+if(botStep==="v_phone"){botData.phone=txt;botStep="v_skill";botSay("Your Skill? Teaching / Tailoring / Computer / Farming / Photography / Events");return}
+if(botStep==="v_skill"){botData.skill=txt;botStep="v_why";botSay("Why do you want to volunteer?");return}
+if(botStep==="v_why"){botData.why=txt;let it={t:`[BOT Volunteer] ${botData.name} - ${botData.skill}`,f:`${botData.name} (Bot Volunteer) - HR`,d:`Age ${botData.age} | Phone ${botData.phone} | Village ${botData.village} | Skills ${botData.skill} | Why ${botData.why}`,s:"Pending",o:"HR Office",ty:"Volunteer Application",amt:0,sub:botData.name,phone:botData.phone};a.unshift(it);sv();ren();botSay(`✅ Done ${botData.name}! Volunteer application sent to ED. We will contact you soon.`);botSay("Type MENU for main menu.");botStep="menu";return}
+botSay("Type MENU to restart.");botStep="menu";
+}
+function sY(){let n=v("yN"),ag=v("yAg"),ph=v("yPh"),vi=v("yVi"),pr=v("yPr"),wh=v("yWh");if(!n||!ag||!ph||!vi||!wh)return alert("Fill all *");let it={t:`[Youth] ${n} - ${pr}`,f:`${n} - Programs`,d:`Age ${ag} | Phone ${ph} | Village ${vi} | Why ${wh}`,s:"Pending",o:"Programs Office",ty:"Youth Application",amt:0,sub:n,phone:ph};a.unshift(it);sv();ren();nED(it);alert("Youth Submitted to ED + WhatsApp sent");go("home")}
+function sV(){let n=v("vN"),ag=v("vAg"),ph=v("vPh"),vi=v("vVi"),sk=v("vSk"),wh=v("vWh");if(!n||!ag||!ph||!vi||!wh)return alert("Fill all *");let it={t:`[Volunteer] ${n} - ${sk}`,f:`${n} - HR`,d:`Age ${ag} | Phone ${ph} | Village ${vi} | Skills ${sk} | Why ${wh}`,s:"Pending",o:"HR Office",ty:"Volunteer Application",amt:0,sub:n,phone:ph};a.unshift(it);sv();ren();nED(it);alert("Volunteer Submitted to ED + WhatsApp sent");go("home")}
+function uF(){let o=document.getElementById("fO").value;document.getElementById("fT").innerHTML=FORMS[o].map(t=>`<option>${t}</option>`).join("")}
+function sF(){let o=v("fO"),ty=v("fT"),ti=v("fTi"),am=document.getElementById("fAm").value||0,de=v("fDe"),sub=v("fSub");if(!ti||!de)return alert("Fill Title+Details");let it={t:`[${o}] ${ti}`,f:`${sub} - ${o}`,d:de,s:"Pending",o,ty,amt:+am,sub};a.unshift(it);sv();ren();nED(it);alert("Submitted to ED + WhatsApp sent");sh("ed")}
+function my(){let m=user?a.filter(x=>x.sub==user[1]):a.slice(0,3);document.getElementById("my").innerHTML=m.map(x=>`• ${x.t} - <b>${x.s}</b>`).join("<br>")||"No submissions"}
+function ren(){let y=a.filter(x=>x.ty=="Youth Application"),vv=a.filter(x=>x.ty=="Volunteer Application");document.getElementById("tA").innerText=y.length+vv.length;document.getElementById("yA").innerText=y.length;document.getElementById("vA").innerText=vv.length;document.getElementById("latestYouth").innerHTML=[...y.slice(0,3),...vv.slice(0,2)].map(x=>`• ${x.t} - <b>${x.s}</b>`).join("<br>")||"No apps yet";document.getElementById("pC").innerText=a.filter(x=>x.s=="Pending").length;document.getElementById("pY").innerText=y.filter(x=>x.s=="Pending").length;document.getElementById("pV").innerText=vv.filter(x=>x.s=="Pending").length;
+document.getElementById("edL").innerHTML=a.map((x,i)=>`<div class="card"><b>${x.t}</b><div class="text-xs">${x.f} | ${x.o} | K${x.amt||0}</div><div class="text-xs">${x.d}</div>${x.phone?`<div class="text-xs bg-blue-50 p-1 rounded">Phone ${x.phone}</div>`:""}<div class="flex gap-2 mt-2"><button class="btn-n text-xs" onclick="dec(${i},'Approved')">APPROVE</button><button class="bg-red-600 text-white rounded-full px-3 py-1 text-xs" onclick="dec(${i},'Rejected')">REJECT</button></div><button class="btn w-full mt-2 text-xs" onclick="res(${i})">Resend to ED</button></div>`).join("")||"No forms";
+document.getElementById("allF").innerHTML=a.map((x,i)=>`<div class="border-b py-1"><b>${x.t}</b> - ${x.s} <button onclick="res(${i})" class="text-green-600 font-bold">Resend</button></div>`).join("")}
+function res(i){nED(a[i])}function dec(i,s){if(!user||user[1]!="Francis Banda")return alert("Only Francis Banda can approve");a[i].s=s;sv();ren();alert(s)}
+function init(){
+document.getElementById("nav").innerHTML=PAGES.map(p=>`<a href="#" onclick="go('${p[0]}');return false" style="background:rgba(255,255,255,.12);color:#fff;padding:5px 9px;border-radius:99px">${p[1]}</a>`).join("");
+document.getElementById("sNav").innerHTML=[["home","Home"],["forms","Forms"],["ed","ED"],["hrm","HRM"]].map(x=>`<button onclick="sh('${x[0]}')" class="flex-1 py-2 text-xs font-bold">${x[1]}</button>`).join("");
+document.getElementById("stats").innerHTML=[["21","Members"],["4","Programs"],["51","Lessons"]].map(s=>`<div class="card text-center"><b class="text-xl" style="color:var(--g)">${s[0]}</b><br>${s[1]}</div>`).join("");
+document.getElementById("progs").innerHTML=[["Pride Pathway","Life Skills Jobs"],["Pride Lady","Tailoring SILC"],["Innovation Hub","Computer AI"],["Pride Farms","Maize 2 Tons"]].map(p=>`<div class="card"><b>${p[0]}</b> - <span class="text-xs">${p[1]}</span></div>`).join("");
+document.getElementById("team").innerHTML=STAFF.map(s=>`${s[1]} - K${s[2]}<br>`).join("");
+document.getElementById("log").innerHTML=`<option value="">--Login--</option>`+STAFF.map(s=>`<option value="${s[1]}">${s[1]} K${s[2]}</option>`).join("");
+document.getElementById("fSub").innerHTML=STAFF.map(s=>`<option>${s[1]}</option>`).join("");
+document.getElementById("fO").innerHTML=Object.keys(FORMS).map(o=>`<option>${o}</option>`).join("");
+document.getElementById("stL").innerHTML=STAFF.map(s=>{let n=Math.round(s[2]*.05);return `<div class="card"><b>${s[1]}</b> Basic K${s[2]} NAPSA K${n} NET K${s[2]-n}</div>`}).join("");
+document.getElementById("qf").innerHTML=[["Finance Office","Payment Request","Payment"],["HR Office","Leave Request","Leave"],["Operations Office","Fuel Request","Fuel"],["Stores Office","Stock Request","Stock"]].map(q=>`<button class="btn-n text-xs" onclick="sh('forms');document.getElementById('fO').value='${q[0]}';uF();document.getElementById('fT').value='${q[1]}'">${q[2]}</button>`).join("");
+uF();ren();my();
+}init();
+</script></body></html>
