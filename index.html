@@ -60,6 +60,19 @@ function go(pageName){
  if(pageName==='admin'&&!currentUser){document.getElementById('loginError').textContent='Please sign in first.';document.getElementById('admin-login').classList.add('active');target.classList.remove('active');}
 }
 function savePublicForm(e,key){e.preventDefault();const data=Object.fromEntries(new FormData(e.target));data.submittedAt=new Date().toISOString();const list=read(key);list.unshift(data);write(key,list);e.target.reset();alert('Thank you. Your submission has been saved on this device.');}
+function migrateEliasPayroll(){
+ const rename=v=>String(v||'').trim().toLowerCase()==='lidya nkhoma'?'Elias Phiri':v;
+ for(const key of ['staff','contracts','payslips','leave']){
+  const arr=read(key).map(x=>{if(x.staff)x.staff=rename(x.staff);if(x.name)x.name=rename(x.name);if(x.staffNo==='NPYDF-010'||x.employeeId==='NPYDF-010'){x.position='Youth Co-ordinator – Eastern';x.role='Youth Co-ordinator – Eastern'}return x});
+  write(key,arr);
+ }
+ let staff=read('staff');
+ if(!staff.some(x=>x.name==='Elias Phiri'||x.employeeId==='NPYDF-010')){staff.push({name:'Elias Phiri',employeeId:'NPYDF-010',nrc:'',phone:'',ward:'',position:'Youth Co-ordinator – Eastern',project:'Eastern Province Coordination',salary:'1000',payment:'',status:'Active'});write('staff',staff)}
+ let contracts=read('contracts');
+ if(!contracts.some(x=>x.staff==='Elias Phiri')){contracts.push({staff:'Elias Phiri',employeeId:'NPYDF-010',type:'Employment',start:'',end:'',salary:'1000',duties:'Youth Co-ordinator – Eastern',status:'Review required'});write('contracts',contracts)}
+ let pays=read('payslips');
+ if(!pays.some(x=>x.staff==='Elias Phiri'&&x.month==='2026-10')){pays.unshift({staff:'Elias Phiri',employeeId:'NPYDF-010',month:'2026-10',basic:'1000',overtime:'0',transport:'0',bonus:'0',deductions:'50',napsa:'50',paye:'0',net:950,paid:false,source:'October 2026 payroll report'});write('payslips',pays)}
+}
 function setup(){
  const menu=document.getElementById('publicMenu');
  if(menu)menu.innerHTML=pages.map(([id,name])=>'<button class="light" style="display:block;width:100%;margin:7px 0;text-align:left" onclick="go(\''+id+'\')">'+name+'</button>').join('');
