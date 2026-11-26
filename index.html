@@ -180,7 +180,8 @@ async function adminGo(id){
  if(!currentUser)return;
  if(!(currentUser.finance&&currentUser.hrm)&&!['dashboard','forms'].includes(id)){id='dashboard';}
  currentAdmin=id;
- document.getElementById('adminNav').innerHTML=adminPages.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\''+k+'\')">'+n+'</button>').join('');
+ const visible=currentUser.finance&&currentUser.hrm?adminPages:adminPages.filter(([key])=>['dashboard','forms'].includes(key));
+ document.getElementById('adminNav').innerHTML=visible.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\''+k+'\')">'+n+'</button>').join('');
  const c=document.getElementById('adminContent');
  if(id==='dashboard')c.innerHTML=await dashboardHTML();
  if(id==='members')c.innerHTML=await membershipAdminHTML();
