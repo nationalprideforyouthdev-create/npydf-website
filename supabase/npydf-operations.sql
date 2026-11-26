@@ -123,6 +123,11 @@ create table if not exists public.form_catalog (
  active boolean not null default true
 );
 
+alter table public.employment_contracts add column if not exists contract_ref text unique;
+alter table public.payslips add column if not exists napsa numeric(12,2) not null default 0;
+alter table public.payslips add column if not exists paye numeric(12,2) not null default 0;
+alter table public.payslips add column if not exists other_deductions numeric(12,2) not null default 0;
+
 alter table public.staff_records enable row level security;
 alter table public.employment_contracts enable row level security;
 alter table public.payslips enable row level security;
