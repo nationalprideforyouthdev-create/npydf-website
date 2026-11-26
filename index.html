@@ -192,14 +192,14 @@ async function adminGo(id){
  if(id==='projects')c.innerHTML=projectsAdminHTML();
 }
 async function dashboardHTML(){
- const [sub,mem,fin,st]=await Promise.all([
+ const [sub,mem]=await Promise.all([
   supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
-  supabaseClient.from('membership_applications').select('id',{count:'exact',head:true}),
-  supabaseClient.from('finance_entries').select('id',{count:'exact',head:true}),
-  supabaseClient.from('staff_records').select('id',{count:'exact',head:true})
+  supabaseClient.from('membership_applications').select('id',{count:'exact',head:true})
  ]);
- const err=[sub,mem,fin,st].find(x=>x.error);
- if(err)return '<div class="notice">Dashboard data unavailable: '+safeText(err.error.message)+'</div>';
+ if(sub.error||mem.error)return '<div class="notice">Dashboard data unavailable: '+safeText((sub.error||mem.error).message)+'</div>';
+ let fin={count:0},st={count:0};
+ if(currentUser.finance){const q=await supabaseClient.from('finance_entries').select('id',{count:'exact',head:true});if(!q.error)fin=q;}
+ if(currentUser.hrm){const q=await supabaseClient.from('staff_records').select('id',{count:'exact',head:true});if(!q.error)st=q;}
  const a=sub.data||[];
  return '<div class="grid"><div class="card"><div class="stat">'+(mem.count||0)+'</div>Membership submissions</div><div class="card"><div class="stat">'+a.filter(x=>x.status!=='completed'&&x.status!=='rejected').length+'</div>Open approval requests</div><div class="card"><div class="stat">'+(fin.count||0)+'</div>Finance entries</div><div class="card"><div class="stat">'+(st.count||0)+'</div>Staff profiles</div></div><div class="card" style="margin-top:16px"><h2>Approval Workflow Queue</h2><p class="muted">Submitted By → Secretary → ED Francis Banda → Treasurer</p>'+(a.length?a.map((x,i)=>{
   const p=x.payload||{},canSecretary=currentUser.secretaryReview&&x.status==='pending_secretary',canED=currentUser.approve&&x.status==='pending_ed',canTreasurer=currentUser.treasurerComplete&&x.status==='approved_treasurer';
