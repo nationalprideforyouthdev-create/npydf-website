@@ -63,7 +63,18 @@ function go(pageName){
  if(pageName==='admin'&&currentUser)renderAdmin();
  if(pageName==='admin'&&!currentUser){document.getElementById('loginError').textContent='Please sign in first.';document.getElementById('admin-login').classList.add('active');target.classList.remove('active');}
 }
-function savePublicForm(e,key){e.preventDefault();const data=Object.fromEntries(new FormData(e.target));data.submittedAt=new Date().toISOString();const list=read(key);list.unshift(data);write(key,list);e.target.reset();alert('Thank you. Your submission has been saved on this device.');}
+async function savePublicForm(e,key){
+ e.preventDefault();const d=Object.fromEntries(new FormData(e.target));let table,row;
+ if(key==='membership'){table='membership_applications';row={full_name:d.name,phone:d.phone,nrc:d.nrc||null,ward:d.ward,project:d.project,reason:d.reason};}
+ else if(key==='partnerships'){table='partner_requests';row={organisation_name:d.name,partner_type:d.type,contact_name:d.name,phone:d.contact,email:d.contact?.includes('@')?d.contact:null,details:d.details};}
+ else if(key==='donations'){table='donation_pledges';row={donor_name:d.name||null,contact:d.contact||null,amount:Number(d.amount),project:d.project};}
+ else if(key==='messages'){table='public_inquiries';row={name:d.name,email:d.contact?.includes('@')?d.contact:null,phone:d.contact?.includes('@')?null:d.contact,subject:d.subject,message:d.message};}
+ else if(key==='news-suggestions'){table='public_inquiries';row={name:d.name,email:d.contact?.includes('@')?d.contact:null,phone:d.contact?.includes('@')?null:d.contact,subject:'News suggestion: '+d.headline,message:d.details};}
+ else {alert('This submission type is not configured.');return}
+ const {error}=await supabaseClient.from(table).insert(row);
+ if(error){alert('Your submission could not be sent. Please try again later. '+error.message);return}
+ e.target.reset();alert('Thank you. Your submission has been securely sent to NPYDF.');
+}
 function migrateEliasPayroll(){
  const rename=v=>String(v||'').trim().toLowerCase()==='lidya nkhoma'?'Elias Phiri':v;
  for(const key of ['staff','contracts','payslips','leave']){
@@ -143,19 +154,34 @@ async function adminGo(id){
  document.getElementById('adminNav').innerHTML=adminPages.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\\''+k+'\\')">'+n+'</button>').join('');
  const c=document.getElementById('adminContent');
  if(id==='dashboard')c.innerHTML=dashboardHTML();
- if(id==='members')c.innerHTML=submissionsHTML('membership','Membership Applications');
+ if(id==='members')c.innerHTML=await membershipAdminHTML();
  if(id==='finance')c.innerHTML=await financeHTML();
  if(id==='hrm')c.innerHTML=await hrmHTML();
  if(id==='forms')c.innerHTML=formsHTML();
- if(id==='news')c.innerHTML=publishedNewsHTML()+submissionsHTML('news-suggestions','News Suggestions');
+ if(id==='news')c.innerHTML=publishedNewsHTML()+await newsSuggestionsHTML();
  if(id==='gallery')c.innerHTML=galleryAdminHTML();
  if(id==='docs')c.innerHTML=docsHTML();
- if(id==='messages')c.innerHTML=submissionsHTML('messages','Messages');
+ if(id==='messages')c.innerHTML=await inquiriesAdminHTML();
  if(id==='projects')c.innerHTML=projectsAdminHTML();
 }
 function dashboardHTML(){let a=read('approvals');return '<div class="grid"><div class="card"><div class="stat">'+read('membership').length+'</div>Membership submissions</div><div class="card"><div class="stat">'+a.length+'</div>Approval requests</div><div class="card"><div class="stat">'+read('finance').length+'</div>Finance entries</div><div class="card"><div class="stat">'+read('staff').length+'</div>Staff profiles</div></div><div class="card" style="margin-top:16px"><h2>ED Approval Queue</h2>'+(currentUser.approve?'<p>Review submissions and record an ED decision, comment and signature.</p>':'<div class="notice">Only the Executive Director can approve or reject items. You may submit items for review.</div>')+(a.length?a.map((x,i)=>'<div class="card"><b>'+x.title+'</b><p>'+x.details+'</p><small>Submitted by '+x.by+' • '+x.date+'</small>'+(currentUser.approve?'<div class="field"><label>ED Comment</label><input id="comment'+i+'" value="'+(x.comment||'')+'"></div><div class="field"><label>Signature</label><input id="sign'+i+'" placeholder="Francis Banda"></div><div class="actions"><button onclick="decide('+i+',\'Approved\')">Approve</button><button class="danger" onclick="decide('+i+',\'Rejected\')">Reject</button></div>':'<p>Status: '+(x.status||'Pending')+'</p>')+'</div>').join(''):'<p class="muted">No approval requests yet.</p>')+'</div><form class="card" style="margin-top:16px" onsubmit="addApproval(event)"><h3>Submit an Item for ED Review</h3><div class="field"><label>Title</label><input name="title" required></div><div class="field"><label>Details</label><textarea name="details" required></textarea></div><button>Submit for Approval</button></form>'}
 function addApproval(e){e.preventDefault();let d=Object.fromEntries(new FormData(e.target));let a=read('approvals');a.unshift({...d,by:currentUser.name,date:new Date().toLocaleString(),status:'Pending'});write('approvals',a);adminGo('dashboard')}
 function decide(i,status){if(!currentUser.approve){alert('ED approval permission required');return}let a=read('approvals');a[i].status=status;a[i].comment=document.getElementById('comment'+i).value;a[i].signature=document.getElementById('sign'+i).value||currentUser.name;a[i].decidedAt=new Date().toISOString();write('approvals',a);adminGo('dashboard')}
+async function membershipAdminHTML(){
+ const {data,error}=await supabaseClient.from('membership_applications').select('*').order('created_at',{ascending:false});
+ if(error)return '<div class="notice">Membership applications unavailable: '+safeText(error.message)+'</div>';
+ return '<div class="card"><h2>Membership Applications</h2><p>'+(data||[]).length+' application(s)</p>'+((data||[]).map(x=>'<article class="card"><b>'+safeText(x.full_name)+'</b><p>'+safeText(x.phone)+' • '+safeText(x.ward)+' • '+safeText(x.project)+'</p><p>'+safeText(x.reason)+'</p><span class="status">'+safeText(x.status)+'</span></article>').join('')||'<p>No applications yet.</p>')+'</div>';
+}
+async function inquiriesAdminHTML(){
+ const {data,error}=await supabaseClient.from('public_inquiries').select('*').order('created_at',{ascending:false});
+ if(error)return '<div class="notice">Messages unavailable: '+safeText(error.message)+'</div>';
+ return '<div class="card"><h2>Messages & Enquiries</h2><p>'+(data||[]).length+' message(s)</p>'+((data||[]).map(x=>'<article class="card"><b>'+safeText(x.subject)+'</b><p>'+safeText(x.name)+' • '+safeText(x.phone||x.email||'')+'</p><p>'+safeText(x.message)+'</p><small>'+safeText(x.created_at)+'</small></article>').join('')||'<p>No messages yet.</p>')+'</div>';
+}
+async function newsSuggestionsHTML(){
+ const {data,error}=await supabaseClient.from('public_inquiries').select('*').ilike('subject','News suggestion:%').order('created_at',{ascending:false});
+ if(error)return '<div class="notice">News suggestions unavailable: '+safeText(error.message)+'</div>';
+ return '<section class="card"><h2>News Suggestions</h2>'+((data||[]).map(x=>'<article class="card"><b>'+safeText(x.subject)+'</b><p>'+safeText(x.name)+' • '+safeText(x.phone||x.email||'')+'</p><p>'+safeText(x.message)+'</p></article>').join('')||'<p>No news suggestions yet.</p>')+'</section>';
+}
 function submissionsHTML(key,title){let arr=read(key);return '<div class="card"><h2>'+title+'</h2><p>'+arr.length+' submission(s) stored on this device.</p>'+(arr.length?arr.map(x=>'<div class="card"><b>'+(x.name||x.headline||x.subject||'Submission')+'</b><pre style="white-space:pre-wrap;font:inherit">'+Object.entries(x).filter(([k])=>k!=='id').map(([k,v])=>k+': '+v).join('\n')+'</pre></div>').join(''):'<p class="muted">No submissions received yet.</p>')+'</div>'}
 async function financeHTML(){
  if(!currentUser.finance)return '<div class="notice">Finance access is restricted to the ED, Secretary and Treasurer.</div>';
