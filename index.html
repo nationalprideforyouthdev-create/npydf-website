@@ -105,7 +105,7 @@ function setup(){
 async function loadAuthenticatedProfile(user){
  const {data:profile,error}=await supabaseClient.from('profiles').select('full_name,role,active').eq('id',user.id).maybeSingle();
  if(error||!profile||profile.active!==true||!permissionByRole[profile.role]){await supabaseClient.auth.signOut();throw new Error('Your account does not have an active NPYDF staff profile. Contact the Executive Director.')}
- currentUser={name:profile.full_name,role:profile.role,username:user.email?.split('@')[0]||'',...permissionByRole[profile.role]};
+ currentUser={id:user.id,name:profile.full_name,role:profile.role,username:user.email?.split('@')[0]||'',...permissionByRole[profile.role]};
 }
 async function login(e){
  e.preventDefault();
