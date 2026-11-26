@@ -24,7 +24,7 @@
 <section class="page" id="partnership"><div class="pagehead"><h1>Partner With Us</h1><p class="muted">Work with NPYDF to create practical opportunities for young people.</p></div><div class="grid"><div class="card"><h3>Schools</h3><p>Mentorship, skills and youth development.</p></div><div class="card"><h3>Churches</h3><p>Community outreach and youth engagement.</p></div><div class="card"><h3>Businesses</h3><p>Work placements, enterprise and training.</p></div><div class="card"><h3>NGOs</h3><p>Programme collaboration and shared impact.</p></div><div class="card"><h3>Government</h3><p>Local development and public initiatives.</p></div><div class="card"><h3>Individuals</h3><p>Volunteer, mentor or support a project.</p></div></div><form class="card" style="margin-top:16px" onsubmit="savePublicForm(event,'partnerships')"><h2>Partnership Request</h2><div class="formgrid"><div class="field"><label>Name / Organisation</label><input name="name" required></div><div class="field"><label>Partner Type</label><select name="type"><option>School</option><option>Church</option><option>Business</option><option>NGO</option><option>Government</option><option>Individual</option></select></div><div class="field"><label>Phone / Email</label><input name="contact" required></div></div><div class="field"><label>How would you like to partner?</label><textarea name="details" required></textarea></div><button>Send Partnership Request</button></form></section>
 <section class="page" id="donate"><div class="pagehead"><h1>Support Youth Development</h1><p class="muted">Your contribution can help young people access training, tools and opportunity.</p></div><form class="card" onsubmit="savePublicForm(event,'donations')"><h2>Choose a Contribution</h2><div class="actions"><button type="button" class="light" onclick="document.getElementById('amount').value=100">K100</button><button type="button" class="light" onclick="document.getElementById('amount').value=250">K250</button><button type="button" class="light" onclick="document.getElementById('amount').value=500">K500</button><button type="button" class="light" onclick="document.getElementById('amount').value=1000">K1,000</button><button type="button" class="light" onclick="document.getElementById('amount').value=2500">K2,500</button></div><div class="formgrid"><div class="field"><label>Amount (ZMW)</label><input id="amount" name="amount" type="number" min="1" required></div><div class="field"><label>Project</label><select name="project"><option>Where most needed</option><option>Pride Pathways</option><option>Pride Lady</option><option>Pride Farms</option><option>Innovation Hub</option><option>Pride Works</option></select></div><div class="field"><label>Your Name</label><input name="name"></div><div class="field"><label>Contact</label><input name="contact"></div></div><button>Submit Pledge / Donation Enquiry</button><p class="muted">This form records a pledge/enquiry only. It does not process card or mobile-money payments.</p></form></section>
 <section class="page" id="contact"><div class="pagehead"><h1>Contact NPYDF</h1><p class="muted">Connect with our team in Chipata, Eastern Province, Zambia.</p></div><div class="grid"><div class="card"><h3>Location</h3><p>Chipata, Eastern Province, Zambia</p></div><div class="card"><h3>Phone</h3><p>+260 77 1319147</p><a href="tel:+260771319147">Call NPYDF</a></div><div class="card"><h3>Email</h3><p>info@npydf.org.zm</p><a href="mailto:info@npydf.org.zm">Email NPYDF</a></div><div class="card"><h3>WhatsApp</h3><p>Chat with our team.</p><a href="https://wa.me/260771319147" target="_blank" rel="noopener">Open WhatsApp</a></div></div><form class="card" style="margin-top:16px" onsubmit="savePublicForm(event,'messages')"><h2>Send a Message</h2><div class="formgrid"><div class="field"><label>Your Name</label><input name="name" required></div><div class="field"><label>Phone / Email</label><input name="contact" required></div><div class="field"><label>Subject</label><input name="subject" required></div></div><div class="field"><label>Message</label><textarea name="message" required></textarea></div><button>Send Message</button></form></section>
-<section class="page" id="content-detail"><div class="card" id="contentDetail"></div></section>\n<section class="page" id="admin-login"><div class="pagehead"><h1>Admin Portal</h1><p class="muted">Authorised NPYDF staff access.</p></div><form class="card" style="max-width:480px;margin:auto" onsubmit="login(event)"><div class="field"><label>Username</label><input name="username" autocomplete="username" required></div><div class="field"><label>Password</label><input name="password" type="password" autocomplete="current-password" required></div><button>Sign In</button><p id="loginError" style="color:var(--red)"></p><p class="muted">Sign in with your first name as username and your NPYDF staff number as password. Do not use this version for confidential HR or financial records until server-side authentication and database policies are deployed.</p></form></section>
+<section class="page" id="content-detail"><div class="card" id="contentDetail"></div></section>\n<section class="page" id="admin-login"><div class="pagehead"><h1>Admin Portal</h1><p class="muted">Authorised NPYDF staff access.</p></div><form class="card" style="max-width:480px;margin:auto" onsubmit="login(event)"><div class="field"><label>Username</label><input name="username" autocomplete="username" required></div><div class="field"><label>Password</label><input name="password" type="password" autocomplete="current-password" required></div><button>Sign In</button><p id="loginError" style="color:var(--red)"></p><p class="muted">Sign in using your first name as username and your authorised password. Accounts are verified by Supabase; access depends on your active staff role.</p></form></section>
 <section class="page" id="admin"><div class="pagehead"><h1>NPYDF Administration</h1><p id="adminWelcome" class="muted"></p></div><div class="adminnav" id="adminNav"></div><div id="adminContent"></div><div class="actions noprint"><button class="light" onclick="go('home')">Public Website</button><button class="danger" onclick="logout()">Sign Out</button></div></section>
 </main><footer class="footer"><div class="wrap"><b>NPYDF CHIPATA</b><p>Building a pride of empowered youths. One youth at a time.</p><small>© 2026 National Pride for Youth Development Foundation • Chipata, Zambia</small></div></footer>
 <script>
@@ -34,19 +34,16 @@ const impact=[['127','Youth Empowered'],['68','Girls Mentored'],['42','Skills Tr
 const stories=[['Grace Phiri','22 • Kapata • Pride Pathways','No job after Grade 12','Own tailoring business, 3 customers, training 2 girls, K1,500/month'],['Mercy Zulu','16 • Chipata Day • Pride Lady','Almost dropped out','Top 10, student ambassador, wants to be a nurse'],['Victor Mwale','27 • Kasenengwa • Pride Farms','0 bags harvested','28 bags, K4,200 sales, poultry starting'],['Daniel Banda','19 • Chipata Central • Innovation Hub','No practical skills','Phone repair, K80–K150 per phone, own tools'],['Memory Lungu','24 • Chinjala • Pride Works','Dirty market and low community participation','9 clean-ups and 320 trees planted'],['Francis Banda','32 • Executive Director','“We had 21 people, no money, no office.”','“But we had pride.”']];
 const leaders=[['Francis Banda','Executive Director'],['Ishmael Banda','Vice Chairperson'],['Artness Banda','Secretary'],['Yvonne Mumba','Vice Secretary'],['Annie Mwanza','Treasurer'],['Victor Mwale','Vice Treasurer'],['Marcell Banda','Executive'],['Memory Lungu','Executive'],['Executive 9','Executive'],['Executive 10','Executive']];
 const formGroups=[['Pride Pathways',7],['Pride Lady',7],['Pride Farms',8],['Innovation Hub',7],['Pride Works',7],['Finance',4],['Secretary',4],['ED',3],['HRM',8]];
-const staffNames=['Francis Banda','Ishmael Banda','Artness Banda','Yvonne Mumba','Annie Mwanza','Victor Mwale','Marcell Banda','Memory Lungu','Elias','Executive 9','Executive 10'];
-const roles={
-francis:{name:'Francis Banda',role:'ED',employeeId:'NPYDF-001',finance:true,approve:true,hrm:true},
-ishmael:{name:'Ishmael Banda',role:'Vice Chairperson',employeeId:'NPYDF-002'},
-artness:{name:'Artness Banda',role:'Secretary',employeeId:'NPYDF-003',finance:true,approve:false,hrm:true},
-yvonne:{name:'Yvonne Mumba',role:'Vice Secretary',employeeId:'NPYDF-004',finance:false,approve:false,hrm:true},
-annie:{name:'Annie Mwanza',role:'Treasurer',employeeId:'NPYDF-005',finance:true,approve:false,hrm:true},
-victor:{name:'Victor Mwale',role:'Vice Treasurer',employeeId:'NPYDF-006'},
-marcel:{name:'Marcel Banda',role:'Fundraising / Publicity',employeeId:'NPYDF-007'},
-esmelly:{name:'Esmelly Mwanza',role:'Programmes Assistant / Vice Publicity',employeeId:'NPYDF-008'},
-jessy:{name:'Jessy Nyirongo',role:'Project Manager / Coordinator',employeeId:'NPYDF-009'},
-elias:{name:'Elias Phiri',role:'Youth Co-ordinator – Eastern',employeeId:'NPYDF-010'}
+const staffNames=['Francis Banda','Ishmael Banda','Artness Banda','Yvonne Mumba','Annie Mwanza','Victor Mwale','Marcell Banda','Memory Lungu','Elias Phiri','Executive 9','Executive 10'];
+const permissionByRole={
+ executive_director:{finance:true,approve:true,hrm:true},
+ secretary:{finance:true,approve:false,hrm:true},
+ treasurer:{finance:true,approve:false,hrm:true},
+ project_lead:{finance:false,approve:false,hrm:false},
+ staff:{finance:false,approve:false,hrm:false}
 };
+const supabaseClient=window.supabase.createClient(window.NPYDF_SUPABASE_CONFIG.url,window.NPYDF_SUPABASE_CONFIG.publishableKey);
+
 
 let currentUser=null,currentAdmin='dashboard';
 function read(key){try{return JSON.parse(localStorage.getItem('npydf_'+key)||'[]')}catch(e){return []}}
@@ -103,8 +100,26 @@ function setup(){
  });
  go(location.hash==='#admin'||location.hash==='#admin-login'?'admin-login':'home');
 }
-function login(e){e.preventDefault();let f=new FormData(e.target),u=String(f.get('username')).toLowerCase().trim(),p=f.get('password');if(!roles[u]||p!==roles[u].employeeId){document.getElementById('loginError').textContent='Invalid username or password.';return}currentUser={...roles[u],username:u};go('admin')}
-function logout(){currentUser=null;go('home')}
+async function loadAuthenticatedProfile(user){
+ const {data:profile,error}=await supabaseClient.from('profiles').select('full_name,role,active').eq('id',user.id).maybeSingle();
+ if(error||!profile||profile.active!==true||!permissionByRole[profile.role]){await supabaseClient.auth.signOut();throw new Error('Your account does not have an active NPYDF staff profile. Contact the Executive Director.')}
+ currentUser={name:profile.full_name,role:profile.role,username:user.email?.split('@')[0]||'',...permissionByRole[profile.role]};
+}
+async function login(e){
+ e.preventDefault();
+ const err=document.getElementById('loginError');err.textContent='Signing in securely…';
+ const f=new FormData(e.target),username=String(f.get('username')||'').trim().toLowerCase(),password=String(f.get('password')||'');
+ const email=username.includes('@')?username:username+'@npydf.org.zm';
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(error){err.textContent='Sign-in failed. Check your username and password, then try again.';return}
+ try{await loadAuthenticatedProfile(data.user);err.textContent='';go('admin')}catch(ex){err.textContent=ex.message}
+}
+async function restoreAuthSession(){
+ const {data}=await supabaseClient.auth.getSession();
+ if(!data.session)return;
+ try{await loadAuthenticatedProfile(data.session.user);if(location.hash==='#admin'||location.hash==='#admin-login')go('admin')}catch(e){document.getElementById('loginError').textContent=e.message}
+}
+async function logout(){await supabaseClient.auth.signOut();currentUser=null;currentAdmin='dashboard';go('home')}
 const adminPages=[['dashboard','Dashboard'],['members','Members'],['finance','Finance'],['hrm','HRM'],['forms','55 Forms'],['news','News'],['gallery','Gallery'],['docs','Docs'],['messages','Messages'],['projects','Projects']];
 function renderAdmin(){if(!currentUser)return;document.getElementById('adminWelcome').textContent='Signed in: '+currentUser.name+' • '+currentUser.role;document.getElementById('adminNav').innerHTML=adminPages.map(([id,n])=>'<button class="'+(id===currentAdmin?'selected':'')+'" onclick="adminGo(\''+id+'\')">'+n+'</button>').join('');adminGo(currentAdmin)}
 function slugify(v){return String(v||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g)}
@@ -194,4 +209,5 @@ function applyContextImages(){
 
 setup();if(location.hash==='#admin'||location.hash==='#admin-login')go('admin-login');
 applyContextImages();
+restoreAuthSession();
 </script></body></html>
