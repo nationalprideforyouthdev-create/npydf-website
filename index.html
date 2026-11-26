@@ -100,7 +100,7 @@ async function renderNewsList(){
  const a=data||[];
  el.innerHTML='<div class="card"><h2>NPYDF NEWS & UPDATES – STORIES FROM KASENENGWA</h2><p>Latest activities, success stories and announcements from our programmes.</p></div>'+a.map(x=>'<button class="card light" style="text-align:left" onclick="openContent(\\'news\\',\\''+safeText(x.slug)+'\\')"><h3>'+safeText(x.headline)+'</h3><p>'+safeText(x.summary)+'</p><small>'+safeText(x.published_at||'')+'</small><b>Read full story →</b></button>').join('');
 }
-function setup()function setup(){
+function setup(){
  const menu=document.getElementById('publicMenu');
  if(menu)menu.innerHTML=pages.map(([id,name])=>'<button class="light" style="display:block;width:100%;margin:7px 0;text-align:left" onclick="go(\''+id+'\')">'+name+'</button>').join('');
  projects.forEach((p,i)=>{const card='<div class="card"><span class="pill">PROJECT '+(i+1)+'</span><h3>'+p[0]+'</h3><b>'+p[1]+'</b><p>'+p[2]+'</p></div>';const home=document.getElementById('homeProjects');if(home)home.insertAdjacentHTML('beforeend',card)});
@@ -158,7 +158,7 @@ async function openContent(type,slug){
  document.getElementById('contentDetail').innerHTML='<button class="light" onclick="go(\\''+(type==='news'?'news':type==='story'?'stories':type==='programme'?'projects':'impact')+'\\')">← Back</button><h1>'+safeText(title)+'</h1><p class="muted">'+safeText(subtitle)+'</p>'+body;
  go('content-detail');history.replaceState(null,'','#'+type+'/'+slug);
 }
-function safeText(v)function safeText(v){return String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function safeText(v){return String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 async function publishNews(e){
  e.preventDefault();if(!currentUser||!['executive_director','secretary'].includes(currentUser.role)){alert('News publishing permission required');return}
  const d=Object.fromEntries(new FormData(e.target)),slug=slugify(d.title);
@@ -176,7 +176,7 @@ async function archivePublishedNews(id){
  const {error}=await supabaseClient.from('news_posts').update({status:'archived'}).eq('id',id);
  if(error){alert('Could not archive article: '+error.message);return}await adminGo('news');
 }
-async function adminGo(id)async function adminGo(id){
+async function adminGo(id){
  currentAdmin=id;
  document.getElementById('adminNav').innerHTML=adminPages.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\\''+k+'\\')">'+n+'</button>').join('');
  const c=document.getElementById('adminContent');
