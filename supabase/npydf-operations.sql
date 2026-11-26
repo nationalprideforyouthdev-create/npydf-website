@@ -151,20 +151,28 @@ create policy "Finance authorised access" on public.finance_entries for all usin
 
 drop policy if exists "Public submits membership" on public.membership_applications;
 create policy "Public submits membership" on public.membership_applications for insert with check(length(trim(full_name)) between 2 and 120 and length(trim(phone)) between 5 and 40);
+drop policy if exists "Staff reviews membership" on public.membership_applications;
 create policy "Staff reviews membership" on public.membership_applications for select using(public.is_staff());
+drop policy if exists "ED and Secretary review membership" on public.membership_applications;
 create policy "ED and Secretary review membership" on public.membership_applications for update using(public.has_any_role(array['executive_director','secretary'])) with check(public.has_any_role(array['executive_director','secretary']));
 
 drop policy if exists "Public submits partner requests" on public.partner_requests;
 create policy "Public submits partner requests" on public.partner_requests for insert with check(length(trim(organisation_name)) between 2 and 180 and length(trim(details)) between 5 and 5000);
+drop policy if exists "Staff reads partner requests" on public.partner_requests;
 create policy "Staff reads partner requests" on public.partner_requests for select using(public.has_any_role(array['executive_director','secretary']));
+drop policy if exists "Staff updates partner requests" on public.partner_requests;
 create policy "Staff updates partner requests" on public.partner_requests for update using(public.has_any_role(array['executive_director','secretary'])) with check(public.has_any_role(array['executive_director','secretary']));
 
 drop policy if exists "Public submits donation pledges" on public.donation_pledges;
 create policy "Public submits donation pledges" on public.donation_pledges for insert with check(amount>0);
+drop policy if exists "Finance reads pledges" on public.donation_pledges;
 create policy "Finance reads pledges" on public.donation_pledges for select using(public.can_manage_finance());
+drop policy if exists "Finance updates pledges" on public.donation_pledges;
 create policy "Finance updates pledges" on public.donation_pledges for update using(public.can_manage_finance()) with check(public.can_manage_finance());
 
+drop policy if exists "Staff reads form catalog" on public.form_catalog;
 create policy "Staff reads form catalog" on public.form_catalog for select using(public.is_staff());
+drop policy if exists "ED manages form catalog" on public.form_catalog;
 create policy "ED manages form catalog" on public.form_catalog for all using(public.has_any_role(array['executive_director'])) with check(public.has_any_role(array['executive_director']));
 
 create index if not exists payslips_month_idx on public.payslips(payroll_month desc);
