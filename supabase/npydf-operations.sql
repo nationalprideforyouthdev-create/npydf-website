@@ -190,3 +190,10 @@ insert into public.staff_records(full_name,position,project,status) values
 ('Executive 9','Executive','Organisation','Active'),
 ('Executive 10','Executive','Organisation','Active')
 on conflict(full_name) do nothing;
+
+
+-- Limit the shared approval queue to its submitter and designated reviewers.
+drop policy if exists "submitter and reviewers read submissions" on public.submissions;
+create policy "submitter and reviewers read submissions" on public.submissions for select
+ using (submitted_by = auth.uid()
+   or public.has_any_role(array['executive_director','secretary','treasurer']));
