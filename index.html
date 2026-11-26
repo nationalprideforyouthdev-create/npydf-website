@@ -140,7 +140,7 @@ async function restoreAuthSession(){
 }
 async function logout(){await supabaseClient.auth.signOut();currentUser=null;currentAdmin='dashboard';go('home')}
 const adminPages=[['dashboard','Dashboard'],['members','Members'],['finance','Finance'],['hrm','HRM'],['forms','55 Forms'],['news','News'],['gallery','Gallery'],['docs','Docs'],['messages','Messages'],['projects','Projects']];
-function renderAdmin(){if(!currentUser)return;document.getElementById('adminWelcome').textContent='Signed in: '+currentUser.name+' • '+currentUser.role;document.getElementById('adminNav').innerHTML=adminPages.map(([id,n])=>'<button class="'+(id===currentAdmin?'selected':'')+'" onclick="adminGo(\''+id+'\')">'+n+'</button>').join('');adminGo(currentAdmin)}
+function renderAdmin(){if(!currentUser)return;document.getElementById('adminWelcome').textContent='Signed in: '+currentUser.name+' • '+currentUser.role;const visible=currentUser.finance&&currentUser.hrm?adminPages:adminPages.filter(([id])=>['dashboard','forms'].includes(id));if(!visible.some(([id])=>id===currentAdmin))currentAdmin='dashboard';document.getElementById('adminNav').innerHTML=visible.map(([id,n])=>'<button class="'+(id===currentAdmin?'selected':'')+'" onclick="adminGo(\''+id+'\')">'+n+'</button>').join('');adminGo(currentAdmin)}
 function slugify(v){return String(v||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g)}
 function contentUrl(type,slug){return location.origin+location.pathname+'#'+type+'/'+slug}
 async function openContent(type,slug){
@@ -177,6 +177,8 @@ async function archivePublishedNews(id){
  if(error){alert('Could not archive article: '+error.message);return}await adminGo('news');
 }
 async function adminGo(id){
+ if(!currentUser)return;
+ if(!(currentUser.finance&&currentUser.hrm)&&!['dashboard','forms'].includes(id)){id='dashboard';}
  currentAdmin=id;
  document.getElementById('adminNav').innerHTML=adminPages.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\''+k+'\')">'+n+'</button>').join('');
  const c=document.getElementById('adminContent');
