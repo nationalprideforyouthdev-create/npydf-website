@@ -38,11 +38,11 @@ const leaders=[['Francis Banda','Executive Director'],['Ishmael Banda','Vice Cha
 const formGroups=[['Pride Pathways',7],['Pride Lady',7],['Pride Farms',8],['Innovation Hub',7],['Pride Works',7],['Finance',4],['Secretary',4],['ED',3],['HRM',8]];
 const staffNames=['Francis Banda','Ishmael Banda','Artness Banda','Yvonne Mumba','Annie Mwanza','Victor Mwale','Marcell Banda','Memory Lungu','Elias Phiri','Executive 9','Executive 10'];
 const permissionByRole={
- executive_director:{finance:true,approve:true,hrm:true},
- secretary:{finance:true,approve:false,hrm:true},
- treasurer:{finance:true,approve:false,hrm:true},
- project_lead:{finance:false,approve:false,hrm:false},
- staff:{finance:false,approve:false,hrm:false}
+ executive_director:{finance:true,approve:true,hrm:true,secretaryReview:false,treasurerComplete:false},
+ secretary:{finance:true,approve:false,hrm:true,secretaryReview:true,treasurerComplete:false},
+ treasurer:{finance:true,approve:false,hrm:true,secretaryReview:false,treasurerComplete:true},
+ project_lead:{finance:false,approve:false,hrm:false,secretaryReview:false,treasurerComplete:false},
+ staff:{finance:false,approve:false,hrm:false,secretaryReview:false,treasurerComplete:false}
 };
 const supabaseClient=window.supabase.createClient(window.NPYDF_SUPABASE_CONFIG.url,window.NPYDF_SUPABASE_CONFIG.publishableKey);
 
@@ -180,7 +180,7 @@ async function adminGo(id){
  currentAdmin=id;
  document.getElementById('adminNav').innerHTML=adminPages.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\''+k+'\')">'+n+'</button>').join('');
  const c=document.getElementById('adminContent');
- if(id==='dashboard')c.innerHTML=dashboardHTML();
+ if(id==='dashboard')c.innerHTML=await dashboardHTML();
  if(id==='members')c.innerHTML=await membershipAdminHTML();
  if(id==='finance')c.innerHTML=await financeHTML();
  if(id==='hrm')c.innerHTML=await hrmHTML();
@@ -191,9 +191,42 @@ async function adminGo(id){
  if(id==='messages')c.innerHTML=await inquiriesAdminHTML();
  if(id==='projects')c.innerHTML=projectsAdminHTML();
 }
-function dashboardHTML(){let a=read('approvals');return '<div class="grid"><div class="card"><div class="stat">'+read('membership').length+'</div>Membership submissions</div><div class="card"><div class="stat">'+a.length+'</div>Approval requests</div><div class="card"><div class="stat">'+read('finance').length+'</div>Finance entries</div><div class="card"><div class="stat">'+read('staff').length+'</div>Staff profiles</div></div><div class="card" style="margin-top:16px"><h2>ED Approval Queue</h2>'+(currentUser.approve?'<p>Review submissions and record an ED decision, comment and signature.</p>':'<div class="notice">Only the Executive Director can approve or reject items. You may submit items for review.</div>')+(a.length?a.map((x,i)=>'<div class="card"><b>'+x.title+'</b><p>'+x.details+'</p><small>Submitted by '+x.by+' • '+x.date+'</small>'+(currentUser.approve?'<div class="field"><label>ED Comment</label><input id="comment'+i+'" value="'+(x.comment||'')+'"></div><div class="field"><label>Signature</label><input id="sign'+i+'" placeholder="Francis Banda"></div><div class="actions"><button onclick="decide('+i+',\'Approved\')">Approve</button><button class="danger" onclick="decide('+i+',\'Rejected\')">Reject</button></div>':'<p>Status: '+(x.status||'Pending')+'</p>')+'</div>').join(''):'<p class="muted">No approval requests yet.</p>')+'</div><form class="card" style="margin-top:16px" onsubmit="addApproval(event)"><h3>Submit an Item for ED Review</h3><div class="field"><label>Title</label><input name="title" required></div><div class="field"><label>Details</label><textarea name="details" required></textarea></div><button>Submit for Approval</button></form>'}
-function addApproval(e){e.preventDefault();let d=Object.fromEntries(new FormData(e.target));let a=read('approvals');a.unshift({...d,by:currentUser.name,date:new Date().toLocaleString(),status:'Pending'});write('approvals',a);adminGo('dashboard')}
-function decide(i,status){if(!currentUser.approve){alert('ED approval permission required');return}let a=read('approvals');a[i].status=status;a[i].comment=document.getElementById('comment'+i).value;a[i].signature=document.getElementById('sign'+i).value||currentUser.name;a[i].decidedAt=new Date().toISOString();write('approvals',a);adminGo('dashboard')}
+async function dashboardHTML(){
+ const [sub,mem,fin,st]=await Promise.all([
+  supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
+  supabaseClient.from('membership_applications').select('id',{count:'exact',head:true}),
+  supabaseClient.from('finance_entries').select('id',{count:'exact',head:true}),
+  supabaseClient.from('staff_records').select('id',{count:'exact',head:true})
+ ]);
+ const err=[sub,mem,fin,st].find(x=>x.error);
+ if(err)return '<div class="notice">Dashboard data unavailable: '+safeText(err.error.message)+'</div>';
+ const a=sub.data||[];
+ return '<div class="grid"><div class="card"><div class="stat">'+(mem.count||0)+'</div>Membership submissions</div><div class="card"><div class="stat">'+a.filter(x=>x.status!=='completed'&&x.status!=='rejected').length+'</div>Open approval requests</div><div class="card"><div class="stat">'+(fin.count||0)+'</div>Finance entries</div><div class="card"><div class="stat">'+(st.count||0)+'</div>Staff profiles</div></div><div class="card" style="margin-top:16px"><h2>Approval Workflow Queue</h2><p class="muted">Submitted By → Secretary → ED Francis Banda → Treasurer</p>'+(a.length?a.map((x,i)=>{
+  const p=x.payload||{},canSecretary=currentUser.secretaryReview&&x.status==='pending_secretary',canED=currentUser.approve&&x.status==='pending_ed',canTreasurer=currentUser.treasurerComplete&&x.status==='approved_treasurer';
+  return '<article class="card"><b>'+safeText(p.title||x.form_name)+'</b><p>'+safeText(p.details||'')+'</p><small>'+safeText(x.form_name)+' • '+safeText(x.status)+' • '+safeText(x.created_at)+'</small>'+
+  (canSecretary?'<div class="field"><label>Secretary Note</label><input id="secretary-note-'+x.id+'"></div><button onclick="decide(\\''+x.id+'\\',\\'secretary\\')">Review & Send to ED</button>':'')+
+  (canED?'<div class="field"><label>ED Comment</label><input id="ed-note-'+x.id+'"></div><div class="field"><label>Signature</label><input id="ed-sign-'+x.id+'" placeholder="Francis Banda"></div><div class="actions"><button onclick="decide(\\''+x.id+'\\',\\'approved\\')">Approve</button><button class="danger" onclick="decide(\\''+x.id+'\\',\\'rejected\\')">Reject</button></div>':'')+
+  (canTreasurer?'<div class="field"><label>Treasurer Note / Receipt</label><input id="treasurer-note-'+x.id+'"></div><button onclick="decide(\\''+x.id+'\\',\\'completed\\')">Mark Completed</button>':'')+
+  (canSecretary||canED||canTreasurer?'':'<p class="muted">Awaiting the next authorised reviewer.</p>')+'</article>';
+ }).join(''):'<p class="muted">No approval requests yet.</p>')+'</div><form class="card" style="margin-top:16px" onsubmit="addApproval(event)"><h3>Submit an Item for Review</h3><div class="field"><label>Title / Form</label><input name="title" required></div><div class="field"><label>Details</label><textarea name="details" required></textarea></div><button>Submit for Approval</button></form>';
+}
+async function addApproval(e){
+ e.preventDefault();if(!currentUser){alert('Sign in required');return}
+ const d=Object.fromEntries(new FormData(e.target));
+ const {error}=await supabaseClient.from('submissions').insert({project:'General / Organisation',form_name:d.title,submitted_by:currentUser.id,payload:{title:d.title,details:d.details},status:'pending_secretary'});
+ if(error){alert('Submission was not saved: '+error.message);return}await adminGo('dashboard');
+}
+async function decide(id,action){
+ const comment=action==='secretary'?document.getElementById('secretary-note-'+id)?.value:action==='treasurer'?document.getElementById('treasurer-note-'+id)?.value:document.getElementById('ed-note-'+id)?.value;
+ let update={};
+ if(action==='secretary'&&currentUser?.secretaryReview)update={status:'pending_ed',secretary_note:comment||null,secretary_at:new Date().toISOString()};
+ else if(action==='approved'&&currentUser?.approve)update={status:'approved_treasurer',ed_note:comment||null,ed_at:new Date().toISOString()};
+ else if(action==='rejected'&&currentUser?.approve)update={status:'rejected',ed_note:comment||null,ed_at:new Date().toISOString()};
+ else if(action==='completed'&&currentUser?.treasurerComplete)update={status:'completed',treasurer_note:comment||null,treasurer_at:new Date().toISOString()};
+ else {alert('You do not have permission for this workflow step.');return}
+ const {error}=await supabaseClient.from('submissions').update(update).eq('id',id);
+ if(error){alert('Workflow update failed: '+error.message);return}await adminGo('dashboard');
+}
 async function membershipAdminHTML(){
  const {data,error}=await supabaseClient.from('membership_applications').select('*').order('created_at',{ascending:false});
  if(error)return '<div class="notice">Membership applications unavailable: '+safeText(error.message)+'</div>';
