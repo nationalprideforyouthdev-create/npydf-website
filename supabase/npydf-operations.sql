@@ -29,6 +29,7 @@ create table if not exists public.staff_records (
 create table if not exists public.employment_contracts (
  id uuid primary key default gen_random_uuid(),
  staff_id uuid not null references public.staff_records(id) on delete cascade,
+ contract_ref text unique,
  contract_type text not null,
  start_date date,
  end_date date,
@@ -45,6 +46,9 @@ create table if not exists public.payslips (
  overtime numeric(12,2) not null default 0,
  transport numeric(12,2) not null default 0,
  bonus numeric(12,2) not null default 0,
+ napsa numeric(12,2) not null default 0,
+ paye numeric(12,2) not null default 0,
+ other_deductions numeric(12,2) not null default 0,
  deductions numeric(12,2) not null default 0,
  net_pay numeric(12,2) generated always as (basic+overtime+transport+bonus-deductions) stored,
  paid_via text,
@@ -176,21 +180,62 @@ insert into public.form_catalog(form_number,group_name,form_name) values
 on conflict(form_number) do update set group_name=excluded.group_name,form_name=excluded.form_name;
 
 
--- Seed the requested staff directory without inventing employee IDs, NRCs or salaries.
-insert into public.staff_records(full_name,position,project,status) values
-('Francis Banda','Executive Director','Organisation','Active'),
-('Ishmael Banda','Vice Chairperson','Organisation','Active'),
-('Artness Banda','Secretary','Organisation','Active'),
-('Yvonne Mumba','Vice Secretary','Pride Lady','Active'),
-('Annie Mwanza','Treasurer','Finance','Active'),
-('Victor Mwale','Vice Treasurer / Pride Farms Lead','Pride Farms','Active'),
-('Marcell Banda','Innovation Hub Lead','Innovation Hub','Active'),
-('Memory Lungu','Pride Works Lead','Pride Works','Active'),
-('Elias Phiri','Youth Co-ordinator – Eastern','Eastern Province Coordination','Active'),
-('Executive 9','Executive','Organisation','Active'),
-('Executive 10','Executive','Organisation','Active')
-on conflict(full_name) do nothing;
+-- Seed staff from the October 2026 payroll and signed contract schedule.
+-- Lidya Nkhoma (NPYDF-010) is replaced by Elias Phiri as instructed.
+-- Memory Lungu and Executive 9/10 are included as staff placeholders; no salary is assumed.
+insert into public.staff_records(full_name,employee_id,position,project,monthly_salary,status) values
+('Francis Banda','NPYDF-001','Executive Director / Chair','Organisation',4000,'Active'),
+('Ishmael Banda','NPYDF-002','Operations / Vice Chair','Organisation',2800,'Active'),
+('Artness Banda','NPYDF-003','Programmes / Secretary General','Organisation',2500,'Active'),
+('Yvonne Mumba','NPYDF-004','HR / Vice Secretary','Organisation',2800,'Active'),
+('Annie Mwanza','NPYDF-005','Finance / Treasurer','Finance',2500,'Active'),
+('Victor Mwale','NPYDF-006','Stores / Vice Treasurer','Pride Farms',2000,'Active'),
+('Marcel Banda','NPYDF-007','Fundraising / Publicity','Organisation',2800,'Active'),
+('Esmelly Mwanza','NPYDF-008','Programmes Assistant / Vice Publicity','Organisation',1500,'Active'),
+('Jessy Nyirongo','NPYDF-009','Project Manager / Coordinator','Organisation',3000,'Active'),
+('Elias Phiri','NPYDF-010','Youth Co-ordinator – Eastern','Eastern Province Coordination',1000,'Active'),
+('Memory Lungu',null,'Pride Works Lead','Pride Works',0,'Active'),
+('Executive 9',null,'Executive','Organisation',0,'Active'),
+('Executive 10',null,'Executive','Organisation',0,'Active')
+on conflict(full_name) do update set employee_id=excluded.employee_id,position=excluded.position,project=excluded.project,monthly_salary=excluded.monthly_salary,status=excluded.status;
 
+-- Import the October 2026 payslips from the supplied payroll schedule.
+-- All are marked Unpaid because the report does not confirm settlement.
+insert into public.payslips(staff_id,payroll_month,basic,overtime,transport,bonus,napsa,paye,other_deductions,deductions,paid)
+select s.id,date '2026-10-01',v.basic,0,0,0,v.napsa,0,0,v.napsa,false
+from (values
+ ('NPYDF-001',4000::numeric,200::numeric),
+ ('NPYDF-002',2800,140),
+ ('NPYDF-003',2500,125),
+ ('NPYDF-004',2800,140),
+ ('NPYDF-005',2500,125),
+ ('NPYDF-006',2000,100),
+ ('NPYDF-007',2800,140),
+ ('NPYDF-008',1500,75),
+ ('NPYDF-009',3000,150),
+ ('NPYDF-010',1000,50)
+) as v(employee_id,basic,napsa)
+join public.staff_records s on s.employee_id=v.employee_id
+on conflict(staff_id,payroll_month) do nothing;
+
+-- Contract references are imported; dates remain blank because the signed start/end dates
+-- are not specified in the supplied contracts. HR must enter confirmed dates.
+insert into public.employment_contracts(contract_ref,staff_id,contract_type,start_date,end_date,salary,duties,status)
+select v.contract_ref,s.id,'Employment',null,null,v.salary,v.duties,'Active - dates to confirm'
+from (values
+ ('NPYDF-001/HR/2026','NPYDF-001',4000::numeric,'Executive Director / Chair'),
+ ('NPYDF-002/HR/2026','NPYDF-002',2800,'Operations / Vice Chair'),
+ ('NPYDF-003/HR/2026','NPYDF-003',2500,'Programmes / Secretary General'),
+ ('NPYDF-004/HR/2026','NPYDF-004',2800,'HR / Vice Secretary'),
+ ('NPYDF-005/HR/2026','NPYDF-005',2500,'Finance / Treasurer'),
+ ('NPYDF-006/HR/2026','NPYDF-006',2000,'Stores / Vice Treasurer'),
+ ('NPYDF-007/HR/2026','NPYDF-007',2800,'Fundraising / Publicity'),
+ ('NPYDF-008/HR/2026','NPYDF-008',1500,'Programmes Assistant / Vice Publicity'),
+ ('NPYDF-009/HR/2026','NPYDF-009',3000,'Project Manager / Coordinator'),
+ ('NPYDF-010/HR/2026','NPYDF-010',1000,'Youth Co-ordinator – Eastern')
+) as v(contract_ref,employee_id,salary,duties)
+join public.staff_records s on s.employee_id=v.employee_id
+on conflict(contract_ref) do update set staff_id=excluded.staff_id,salary=excluded.salary,duties=excluded.duties,status=excluded.status;
 
 -- Limit the shared approval queue to its submitter and designated reviewers.
 drop policy if exists "submitter and reviewers read submissions" on public.submissions;
