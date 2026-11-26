@@ -57,6 +57,8 @@ function go(pageName){
  if(!target)return;
  document.querySelectorAll('main#app > .page').forEach(p=>p.classList.remove('active'));
  target.classList.add('active');
+ if(pageName==='news')renderNewsList();
+ if(typeof applyContextImages==='function')applyContextImages();
  window.scrollTo({top:0,behavior:'instant'});
  toggleMenu(false);
  if(pageName==='admin'&&currentUser)renderAdmin();
@@ -187,6 +189,7 @@ function applyContextImages(){
  const tiles=document.querySelectorAll('#gallery .gallerytile');const galleryKeys=['skills','health','outreach','farming','digital','nature'];tiles.forEach((tile,i)=>{const key=galleryKeys[i]||'community';tile.style.backgroundImage='url("'+photos[key]+'")';tile.setAttribute('role','img');tile.setAttribute('aria-label',tile.textContent.trim()+' activity photograph')});
  const storyCards=document.querySelectorAll('#storiesList .card, #storiesList button');storyCards.forEach((card,i)=>{if(card.querySelector('img'))return;const img=document.createElement('img');img.className='context-thumb';img.src=[photos.skills,photos.health,photos.outreach,photos.farming,photos.digital][i%5];img.alt='Illustrative image for '+(card.querySelector('h3')?.textContent||'NPYDF youth story');img.loading='lazy';card.prepend(img)});
  const projectCards=document.querySelectorAll('#projectList .card, #projectList button');projectCards.forEach((card,i)=>{if(card.querySelector('img'))return;const img=document.createElement('img');img.className='context-thumb';img.src=[photos.skills,photos.health,photos.farming,photos.digital,photos.teamwork][i%5];img.alt='Illustrative image for '+(card.querySelector('h3')?.textContent||'NPYDF programme');img.loading='lazy';card.prepend(img)});
+ const newsCards=document.querySelectorAll('#newsList .card, #newsList button');newsCards.forEach((card,i)=>{if(card.querySelector('img'))return;const img=document.createElement('img');img.className='context-thumb';img.src=[photos.outreach,photos.teamwork,photos.community,photos.health][i%4];img.alt='Illustrative photograph for '+(card.querySelector('h3')?.textContent||'NPYDF news update');img.loading='lazy';img.decoding='async';card.prepend(img)});
 }
 
 setup();if(location.hash==='#admin'||location.hash==='#admin-login')go('admin-login');
