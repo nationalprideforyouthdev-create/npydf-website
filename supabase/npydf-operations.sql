@@ -13,7 +13,7 @@ $$;
 
 create table if not exists public.staff_records (
  id uuid primary key default gen_random_uuid(),
- full_name text not null,
+ full_name text not null unique,
  employee_id text unique,
  nrc text,
  phone text,
@@ -174,3 +174,19 @@ insert into public.form_catalog(form_number,group_name,form_name) values
 (44,'ED','Approval Request'),(45,'ED','Executive Decision'),(46,'ED','Project Review'),
 (47,'HRM','Staff Information Form'),(48,'HRM','Employment Contract'),(49,'HRM','Monthly Payslip'),(50,'HRM','Leave Request'),(51,'HRM','Performance Review'),(52,'HRM','Staff Attendance'),(53,'HRM','Disciplinary Record'),(54,'HRM','Staff Exit Checklist'),(55,'HRM','Training and Development')
 on conflict(form_number) do update set group_name=excluded.group_name,form_name=excluded.form_name;
+
+
+-- Seed the requested staff directory without inventing employee IDs, NRCs or salaries.
+insert into public.staff_records(full_name,position,project,status) values
+('Francis Banda','Executive Director','Organisation','Active'),
+('Ishmael Banda','Vice Chairperson','Organisation','Active'),
+('Artness Banda','Secretary','Organisation','Active'),
+('Yvonne Mumba','Vice Secretary','Pride Lady','Active'),
+('Annie Mwanza','Treasurer','Finance','Active'),
+('Victor Mwale','Vice Treasurer / Pride Farms Lead','Pride Farms','Active'),
+('Marcell Banda','Innovation Hub Lead','Innovation Hub','Active'),
+('Memory Lungu','Pride Works Lead','Pride Works','Active'),
+('Elias Phiri','Youth Co-ordinator – Eastern','Eastern Province Coordination','Active'),
+('Executive 9','Executive','Organisation','Active'),
+('Executive 10','Executive','Organisation','Active')
+on conflict(full_name) do nothing;
