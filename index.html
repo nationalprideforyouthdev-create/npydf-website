@@ -44,6 +44,40 @@ esmelly:{name:'Esmelly Mwanza',role:'Programmes Assistant / Vice Publicity',empl
 jessy:{name:'Jessy Nyirongo',role:'Project Manager / Coordinator',employeeId:'NPYDF-009'},
 elias:{name:'Elias Phiri',role:'Youth Co-ordinator – Eastern',employeeId:'NPYDF-010'}
 };
+
+let currentUser=null,currentAdmin='dashboard';
+function read(key){try{return JSON.parse(localStorage.getItem('npydf_'+key)||'[]')}catch(e){return []}}
+function write(key,value){localStorage.setItem('npydf_'+key,JSON.stringify(value))}
+function toggleMenu(force){const d=document.getElementById('drawer'),sh=document.getElementById('shade');const open=typeof force==='boolean'?force:!d.classList.contains('open');d.classList.toggle('open',open);sh.classList.toggle('show',open);document.body.classList.toggle('menu-open',open)}
+function go(pageName){
+ const target=document.getElementById(pageName);
+ if(!target)return;
+ document.querySelectorAll('main#app > .page').forEach(p=>p.classList.remove('active'));
+ target.classList.add('active');
+ window.scrollTo({top:0,behavior:'instant'});
+ toggleMenu(false);
+ if(pageName==='admin'&&currentUser)renderAdmin();
+ if(pageName==='admin'&&!currentUser){document.getElementById('loginError').textContent='Please sign in first.';document.getElementById('admin-login').classList.add('active');target.classList.remove('active');}
+}
+function savePublicForm(e,key){e.preventDefault();const data=Object.fromEntries(new FormData(e.target));data.submittedAt=new Date().toISOString();const list=read(key);list.unshift(data);write(key,list);e.target.reset();alert('Thank you. Your submission has been saved on this device.');}
+function setup(){
+ const menu=document.getElementById('publicMenu');
+ if(menu)menu.innerHTML=pages.map(([id,name])=>'<button class="light" style="display:block;width:100%;margin:7px 0;text-align:left" onclick="go(\''+id+'\')">'+name+'</button>').join('');
+ projects.forEach((p,i)=>{const card='<div class="card"><span class="pill">PROJECT '+(i+1)+'</span><h3>'+p[0]+'</h3><b>'+p[1]+'</b><p>'+p[2]+'</p></div>';const home=document.getElementById('homeProjects');if(home)home.insertAdjacentHTML('beforeend',card)});
+ const stats=document.getElementById('impactStats');if(stats)stats.innerHTML=impact.map(x=>'<div class="card"><div class="stat">'+x[0]+'</div><div class="statlabel">'+x[1]+'</div></div>').join('');
+ const storyList=document.getElementById('storiesList');if(storyList)storyList.innerHTML=stories.map(x=>'<div class="card"><h3>'+x[0]+'</h3><p class="muted">'+x[1]+'</p><p><b>Before:</b> '+x[2]+'</p><p><b>After:</b> '+x[3]+'</p></div>').join('');
+ const leadership=document.getElementById('leadershipList');if(leadership)leadership.innerHTML=leaders.map((x,i)=>'<div class="card"><b>'+x[0]+'</b><p>'+x[1]+'</p></div>').join('');
+ const news=document.getElementById('newsList');if(news)news.innerHTML='<div class="card"><h3>NPYDF NEWS & UPDATES – STORIES FROM KASENENGWA</h3><p>Latest activities, success stories and announcements from our programmes.</p></div>';
+ document.querySelectorAll('main#app > .page').forEach((page,i)=>{
+  if(page.id==='admin'||page.id==='admin-login')return;
+  const prev=i>0?pages[i-1]:null,next=i<pages.length-1?pages[i+1]:null;
+  const nav=document.createElement('div');nav.className='pager actions';
+  nav.style.cssText='display:flex;justify-content:space-between;gap:10px;margin:28px 0 12px;flex-wrap:wrap';
+  nav.innerHTML=(prev?'<button class="light" onclick="go(\''+prev[0]+'\')">← Back: '+prev[1]+'</button>':'<span></span>')+(next?'<button onclick="go(\''+next[0]+'\')">Next Page: '+next[1]+' →</button>':'');
+  page.appendChild(nav);
+ });
+ go(location.hash==='#admin'||location.hash==='#admin-login'?'admin-login':'home');
+}
 function login(e){e.preventDefault();let f=new FormData(e.target),u=String(f.get('username')).toLowerCase().trim(),p=f.get('password');if(!roles[u]||p!==roles[u].employeeId){document.getElementById('loginError').textContent='Invalid username or password.';return}currentUser={...roles[u],username:u};go('admin')}
 function logout(){currentUser=null;go('home')}
 const adminPages=[['dashboard','Dashboard'],['members','Members'],['finance','Finance'],['hrm','HRM'],['forms','55 Forms'],['news','News'],['gallery','Gallery'],['docs','Docs'],['messages','Messages'],['projects','Projects']];
