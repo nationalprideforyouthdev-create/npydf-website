@@ -93,8 +93,14 @@ function showImpactDetail(i){const x=impact[i];const details=['Youth participati
 function showStoryDetail(i){const x=stories[i];showDetail('storyDetail',x[0],x[1],'<h3>Before NPYDF support</h3><p>'+x[2]+'</p><h3>Progress and outcomes</h3><p>'+x[3]+'</p><p>NPYDF celebrates this journey as an example of youth resilience, practical skills and community-led development.</p>');}
 function showProjectDetail(i){const x=projects[i];const extras=['Skills training, mentorship and enterprise development. Led by Artness Banda.','Girls’ mentorship and school engagement at Chipata Day, Hillside Girls, Anoya Zulu, Kapata and Mchini. Led by Yvonne Mumba.','Youth agriculture and livelihood development in Kasenengwa. Led by Victor Mwale.','Digital skills, practical innovation and phone repair in Chipata Town. Led by Marcell Banda.','Community clean-ups, environmental action and tree planting. Led by Memory Lungu.'];showDetail('projectDetail',x[0], 'Programme lead: '+x[1],'<p>'+x[2]+'</p><h3>Programme activities</h3><p>'+extras[i]+'</p><p><b>How to get involved:</b> Apply for membership or contact NPYDF to express interest in this programme.</p><button onclick="go(\'membership\')">Join this programme</button>');}
 function showNewsDetail(i){showDetail('newsDetail','NPYDF NEWS & UPDATES – STORIES FROM KASENENGWA','Featured update','<p>Stay updated with activities, success stories and announcements from NPYDF’s five programmes.</p><p>In 2026, NPYDF reports reaching 127 lives, with work spanning Kapata, Chipata Central, Mchini and Kasenengwa.</p><p>Project updates and community stories will be added as they are submitted and approved.</p>');}
-function renderNewsList(){const el=document.getElementById('newsList');if(!el)return;const a=read('published-news');el.innerHTML='<div class="card"><h2>NPYDF NEWS & UPDATES – STORIES FROM KASENENGWA</h2><p>Latest activities, success stories and announcements from our programmes.</p></div>'+a.map(x=>'<button class="card light" style="text-align:left" onclick="openContent(\'news\',\''+x.slug+'\')"><h3>'+safeText(x.title)+'</h3><p>'+safeText(x.summary)+'</p><small>'+safeText(x.date)+'</small><b>Read full story →</b></button>').join('')}
-function setup(){
+async function renderNewsList(){
+ const el=document.getElementById('newsList');if(!el)return;
+ const {data,error}=await supabaseClient.from('news_posts').select('headline,slug,summary,published_at').eq('status','published').order('published_at',{ascending:false});
+ if(error){el.innerHTML='<div class="notice">News feed is temporarily unavailable.</div>';return}
+ const a=data||[];
+ el.innerHTML='<div class="card"><h2>NPYDF NEWS & UPDATES – STORIES FROM KASENENGWA</h2><p>Latest activities, success stories and announcements from our programmes.</p></div>'+a.map(x=>'<button class="card light" style="text-align:left" onclick="openContent(\\'news\\',\\''+safeText(x.slug)+'\\')"><h3>'+safeText(x.headline)+'</h3><p>'+safeText(x.summary)+'</p><small>'+safeText(x.published_at||'')+'</small><b>Read full story →</b></button>').join('');
+}
+function setup()function setup(){
  const menu=document.getElementById('publicMenu');
  if(menu)menu.innerHTML=pages.map(([id,name])=>'<button class="light" style="display:block;width:100%;margin:7px 0;text-align:left" onclick="go(\''+id+'\')">'+name+'</button>').join('');
  projects.forEach((p,i)=>{const card='<div class="card"><span class="pill">PROJECT '+(i+1)+'</span><h3>'+p[0]+'</h3><b>'+p[1]+'</b><p>'+p[2]+'</p></div>';const home=document.getElementById('homeProjects');if(home)home.insertAdjacentHTML('beforeend',card)});
@@ -137,19 +143,40 @@ const adminPages=[['dashboard','Dashboard'],['members','Members'],['finance','Fi
 function renderAdmin(){if(!currentUser)return;document.getElementById('adminWelcome').textContent='Signed in: '+currentUser.name+' • '+currentUser.role;document.getElementById('adminNav').innerHTML=adminPages.map(([id,n])=>'<button class="'+(id===currentAdmin?'selected':'')+'" onclick="adminGo(\''+id+'\')">'+n+'</button>').join('');adminGo(currentAdmin)}
 function slugify(v){return String(v||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g)}
 function contentUrl(type,slug){return location.origin+location.pathname+'#'+type+'/'+slug}
-function openContent(type,slug){
- const records=type==='news'?read('published-news'):type==='story'?stories.map((x,i)=>({title:x[0],subtitle:x[1],before:x[2],after:x[3],slug:slugify(x[0]),index:i})):type==='programme'?projects.map((x,i)=>({title:x[0],lead:x[1],description:x[2],slug:slugify(x[0]),index:i})):type==='impact'?impact.map((x,i)=>({title:x[0]+' '+x[1],slug:slugify(x[1]),index:i})): [];
- const item=records.find(x=>(x.slug||slugify(x.title))===slug);if(!item){alert('This page could not be found.');return}
- let title=item.title||'',subtitle=item.subtitle||item.lead||'NPYDF Chipata';
- let body=type==='news'?'<p>'+safeText(item.body||'')+'</p><p class="muted">Published '+safeText(item.date||'')+'</p>':type==='story'?'<h3>Before</h3><p>'+item.before+'</p><h3>After</h3><p>'+item.after+'</p>':type==='programme'?'<p>'+item.description+'</p><p>Programme lead: '+item.lead+'</p><button onclick="go(\'membership\')">Join this programme</button>':'<p>2026 NPYDF impact indicator.</p>';
- document.getElementById('contentDetail').innerHTML='<button class="light" onclick="go(\''+(type==='news'?'news':type==='story'?'stories':type==='programme'?'projects':'impact')+'\')">← Back</button><h1>'+title+'</h1><p class="muted">'+subtitle+'</p>'+body;
+async function openContent(type,slug){
+ let item=null;
+ if(type==='news'){
+  const {data,error}=await supabaseClient.from('news_posts').select('*').eq('slug',slug).eq('status','published').maybeSingle();
+  if(error||!data){alert('This news article could not be found.');return}item=data;
+ }else{
+  const records=type==='story'?stories.map((x,i)=>({title:x[0],subtitle:x[1],before:x[2],after:x[3],slug:slugify(x[0]),index:i})):type==='programme'?projects.map((x,i)=>({title:x[0],lead:x[1],description:x[2],slug:slugify(x[0]),index:i})):type==='impact'?impact.map((x,i)=>({title:x[0]+' '+x[1],slug:slugify(x[1]),index:i})): [];
+  item=records.find(x=>(x.slug||slugify(x.title))===slug);
+ }
+ if(!item){alert('This page could not be found.');return}
+ let title=item.headline||item.title||'',subtitle=item.summary||item.subtitle||item.lead||'NPYDF Chipata';
+ let body=type==='news'?'<p>'+safeText(item.body||'')+'</p><p class="muted">Published '+safeText(item.published_at||'')+'</p>':type==='story'?'<h3>Before</h3><p>'+item.before+'</p><h3>After</h3><p>'+item.after+'</p>':type==='programme'?'<p>'+item.description+'</p><p>Programme lead: '+item.lead+'</p><button onclick="go(\\'membership\\')">Join this programme</button>':'<p>2026 NPYDF impact indicator.</p>';
+ document.getElementById('contentDetail').innerHTML='<button class="light" onclick="go(\\''+(type==='news'?'news':type==='story'?'stories':type==='programme'?'projects':'impact')+'\\')">← Back</button><h1>'+safeText(title)+'</h1><p class="muted">'+safeText(subtitle)+'</p>'+body;
  go('content-detail');history.replaceState(null,'','#'+type+'/'+slug);
 }
-function safeText(v){return String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function publishNews(e){e.preventDefault();if(!currentUser){alert('Admin login required');return}const d=Object.fromEntries(new FormData(e.target));d.slug=slugify(d.title);d.date=new Date().toLocaleDateString();d.author=currentUser.name;let a=read('published-news');a.unshift(d);write('published-news',a);e.target.reset();adminGo('news');alert('News saved as published on this browser.')}
-function publishedNewsHTML(){const a=read('published-news');return '<section class="card"><h2>Publish News Article</h2><form onsubmit="publishNews(event)"><div class="field"><label>Headline</label><input name="title" required></div><div class="field"><label>Summary</label><input name="summary" required></div><div class="field"><label>Full article</label><textarea name="body" rows="6" required></textarea></div><button>Publish Article</button></form></section><section class="card"><h2>Published Articles</h2>'+(a.length?a.map(x=>'<article class="card"><h3>'+safeText(x.title)+'</h3><p>'+safeText(x.summary)+'</p><p><a href="'+contentUrl('news',x.slug)+'" target="_blank">Open detail page ↗</a></p><button class="danger" onclick="deletePublishedNews(\''+x.slug+'\')">Delete</button></article>').join(''):'<p>No published articles yet.</p>')+'</section>'}
-function deletePublishedNews(slug){write('published-news',read('published-news').filter(x=>x.slug!==slug));adminGo('news')}
-async function adminGo(id){
+function safeText(v)function safeText(v){return String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+async function publishNews(e){
+ e.preventDefault();if(!currentUser||!['executive_director','secretary'].includes(currentUser.role)){alert('News publishing permission required');return}
+ const d=Object.fromEntries(new FormData(e.target)),slug=slugify(d.title);
+ const {error}=await supabaseClient.from('news_posts').insert({headline:d.title,slug,summary:d.summary,body:d.body,category:'Update',status:'published',published_at:new Date().toISOString(),author_id:currentUser.id});
+ if(error){alert('News article was not published: '+error.message);return}e.target.reset();await adminGo('news');alert('News article published.');
+}
+async function publishedNewsHTML(){
+ const {data,error}=await supabaseClient.from('news_posts').select('*').eq('status','published').order('published_at',{ascending:false});
+ if(error)return '<div class="notice">Published news unavailable: '+safeText(error.message)+'</div>';
+ const a=data||[];
+ return '<section class="card"><h2>Publish News Article</h2><form onsubmit="publishNews(event)"><div class="field"><label>Headline</label><input name="title" required></div><div class="field"><label>Summary</label><input name="summary" required></div><div class="field"><label>Full article</label><textarea name="body" rows="6" required></textarea></div><button>Publish Article</button></form></section><section class="card"><h2>Published Articles</h2>'+(a.length?a.map(x=>'<article class="card"><h3>'+safeText(x.headline)+'</h3><p>'+safeText(x.summary)+'</p><p><a href="'+contentUrl('news',x.slug)+'" target="_blank">Open detail page ↗</a></p><button class="danger" onclick="archivePublishedNews(\\''+safeText(x.id)+'\\')">Archive</button></article>').join(''):'<p>No published articles yet.</p>')+'</section>';
+}
+async function archivePublishedNews(id){
+ if(!currentUser||!['executive_director','secretary'].includes(currentUser.role))return;
+ const {error}=await supabaseClient.from('news_posts').update({status:'archived'}).eq('id',id);
+ if(error){alert('Could not archive article: '+error.message);return}await adminGo('news');
+}
+async function adminGo(id)async function adminGo(id){
  currentAdmin=id;
  document.getElementById('adminNav').innerHTML=adminPages.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\\''+k+'\\')">'+n+'</button>').join('');
  const c=document.getElementById('adminContent');
@@ -158,7 +185,7 @@ async function adminGo(id){
  if(id==='finance')c.innerHTML=await financeHTML();
  if(id==='hrm')c.innerHTML=await hrmHTML();
  if(id==='forms')c.innerHTML=formsHTML();
- if(id==='news')c.innerHTML=publishedNewsHTML()+await newsSuggestionsHTML();
+ if(id==='news')c.innerHTML=await publishedNewsHTML()+await newsSuggestionsHTML();
  if(id==='gallery')c.innerHTML=galleryAdminHTML();
  if(id==='docs')c.innerHTML=docsHTML();
  if(id==='messages')c.innerHTML=await inquiriesAdminHTML();
