@@ -1,0 +1,3 @@
+/* Replace with Firebase Console > Project settings > Your apps web config. Never place service-account secrets here. */
+export const firebaseConfig={apiKey:"PASTE_FIREBASE_WEB_API_KEY",authDomain:"YOUR_PROJECT_ID.firebaseapp.com",projectId:"YOUR_PROJECT_ID",storageBucket:"YOUR_PROJECT_ID.appspot.com",messagingSenderId:"YOUR_MESSAGING_SENDER_ID",appId:"YOUR_FIREBASE_APP_ID"};
+export const isFirebaseConfigured=!Object.values(firebaseConfig).some(v=>String(v).startsWith("PASTE_")||String(v).startsWith("YOUR_"));
