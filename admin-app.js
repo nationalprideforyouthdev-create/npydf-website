@@ -12,13 +12,17 @@ async function open(id){const m=mods.find(x=>x.id===id&&permitted(x));if(!m)retu
 async function load(m){
  $("moduleContent").innerHTML='<p class="muted">Loading records…</p>';
  try{
-  const s=await getDocs(query(collection(db,m.collection),orderBy("created_at","desc"),limit(50)));
-  const rows=s.docs.map(d=>({id:d.id,...d.data()}));
+  const s=await getDocs(m.id==="finance"?query(collection(db,m.collection),orderBy("created_at","desc")):query(collection(db,m.collection),orderBy("created_at","desc"),limit(50)));
+  const allRows=s.docs.map(d=>({id:d.id,...d.data()}));
+  const rows=m.id==="finance"?allRows.slice(0,50):allRows;
   const add=["reports","activities","finance"].includes(m.id)|| (m.id==="applications"&&["executive_director","secretary"].includes(normalizedRole()));
   if(m.id==="finance"){
 const body=rows.map(r=>'<tr><td>'+esc(r.transaction_date||'')+'</td><td>'+esc(r.transaction_type||'')+'</td><td>'+esc(r.category||'')+'</td><td>'+esc(r.programme||'')+'</td><td>'+esc(r.description||'')+'</td><td>'+esc(r.currency||'ZMW')+' '+Number(r.amount||0).toFixed(2)+'</td><td>'+esc(r.reference||'')+'</td></tr>').join('');
-const total=rows.reduce((a,r)=>a+Number(r.amount||0),0);
-$("moduleContent").innerHTML='<div class="toolbar"><button id="addRecord" class="btn primary">Record transaction</button></div><p><strong>Total displayed entries: '+total.toFixed(2)+' '+esc(rows[0]?.currency||'ZMW')+'</strong> (latest 50; not a balance)</p>'+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Programme</th><th>Description</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No financial transactions yet.</div>');
+const currencies=[...new Set(allRows.map(r=>String(r.currency||"ZMW").toUpperCase()))].sort();
+const money=n=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const summaries=currencies.map(currency=>{const entries=allRows.filter(r=>String(r.currency||"ZMW").toUpperCase()===currency);const income=entries.filter(r=>String(r.transaction_type||"").toLowerCase()==="income").reduce((a,r)=>a+Number(r.amount||0),0);const expense=entries.filter(r=>String(r.transaction_type||"").toLowerCase()==="expense").reduce((a,r)=>a+Number(r.amount||0),0);const pending=entries.filter(r=>["pending","pending_approval","awaiting_approval"].includes(String(r.status||"").toLowerCase())).length;return '<section class="finance-currency"><h3>'+esc(currency)+' overview</h3><div class="finance-metrics"><div class="finance-metric"><span>Total income</span><strong>'+money(income)+'</strong></div><div class="finance-metric"><span>Total expenditure</span><strong>'+money(expense)+'</strong></div><div class="finance-metric"><span>Available balance</span><strong>'+money(income-expense)+'</strong></div><div class="finance-metric"><span>Pending approvals</span><strong>'+pending+'</strong></div></div></section>'});
+const overview=summaries.length?summaries.join(""):'<div class="empty">No financial transactions yet. Record the first transaction to start your Finance Overview.</div>';
+$("moduleContent").innerHTML='<div class="toolbar"><button id="addRecord" class="btn primary">Record transaction</button></div><h3 class="finance-heading">Finance Overview</h3>'+overview+'<h3 class="finance-heading">Recent transactions <small>(latest 50 of '+allRows.length+')</small></h3>'+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Programme</th><th>Description</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No financial transactions yet.</div>');
 $("addRecord").onclick=()=>form(m);return;
 }
   if(m.id==="staff"){
