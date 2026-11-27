@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id),labels={executive_director:"Executive Di
 const mods=[{id:"overview",label:"Overview",desc:"Operations at a glance.",roles:all},{id:"applications",label:"Applications",desc:"Review programme and membership applications.",collection:"applications",roles:["executive_director","secretary","project_lead"]},{id:"reports",label:"Programme reports",desc:"Monthly programme reporting.",collection:"monthly_reports",roles:all},{id:"finance",label:"Finance",desc:"Finance transactions.",collection:"finance_entries",roles:["executive_director","treasurer"]},{id:"staff",label:"Staff records",desc:"Staff administration.",collection:"staff_records",roles:["executive_director","secretary"]},{id:"activities",label:"Programme activities",desc:"Activities and outputs.",collection:"programme_activities",roles:["executive_director","secretary","project_lead","staff"]}];
 let auth,db,profile=null,active="overview";const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function loginView(msg=""){$("loginView").classList.remove("hidden");$("appView").classList.add("hidden");$("logout").classList.add("hidden");$("loginError").textContent=msg}
-function permitted(m){return profile&&m.roles.includes(profile.role)}
+function normalizedRole(){return String(profile?.role||"").trim().toLowerCase().replaceAll(" ","_")}\nfunction permitted(m){return profile&&m.roles.includes(normalizedRole())}
 async function enter(u){const s=await getDoc(doc(db,"profiles",u.uid));if(!s.exists()){await signOut(auth);loginView("Profile document missing at profiles/"+u.uid+". Check the exact document ID and Firebase project.");return}const data=s.data();if(data.active!==true){await signOut(auth);loginView("Profile found, but active is not Boolean true. Current value: "+String(data.active)+"; type: "+typeof data.active);return}if(!labels[data.role]){await signOut(auth);loginView("Profile found, but role is not recognized. Current role: "+String(data.role));return}profile=data;$("loginView").classList.add("hidden");$("appView").classList.remove("hidden");$("logout").classList.remove("hidden");$("welcomeText").textContent="Signed in as "+profile.full_name;$("roleTag").textContent=labels[profile.role];nav();await stats();await open("overview")}
 function nav(){$("nav").innerHTML=mods.filter(permitted).map(m=>'<button class="navbtn '+(m.id===active?"active":"")+'" data-id="'+m.id+'">'+m.label+'</button>').join("");$("nav").querySelectorAll("button").forEach(b=>b.onclick=()=>open(b.dataset.id))}
 async function stats(){const pairs=[["Applications","applications"],["Monthly reports","monthly_reports"],["Finance entries","finance_entries"],["Programme activities","programme_activities"]];const counts=await Promise.all(pairs.map(async p=>{try{return(await getCountFromServer(collection(db,p[1]))).data().count}catch{return"—"}}));$("stats").innerHTML=pairs.map((p,i)=>'<div class="stat"><strong>'+counts[i]+'</strong><span>'+p[0]+'</span></div>').join("")}
@@ -13,7 +13,7 @@ async function load(m){
  try{
   const s=await getDocs(query(collection(db,m.collection),orderBy("created_at","desc"),limit(50)));
   const rows=s.docs.map(d=>({id:d.id,...d.data()}));
-  const add=["reports","activities","finance"].includes(m.id)|| (m.id==="applications"&&["executive_director","secretary"].includes(profile.role));
+  const add=["reports","activities","finance"].includes(m.id)|| (m.id==="applications"&&["executive_director","secretary"].includes(normalizedRole()));
   if(m.id==="finance"){
 const body=rows.map(r=>'<tr><td>'+esc(r.transaction_date||'')+'</td><td>'+esc(r.transaction_type||'')+'</td><td>'+esc(r.category||'')+'</td><td>'+esc(r.programme||'')+'</td><td>'+esc(r.description||'')+'</td><td>'+esc(r.currency||'ZMW')+' '+Number(r.amount||0).toFixed(2)+'</td><td>'+esc(r.reference||'')+'</td></tr>').join('');
 const total=rows.reduce((a,r)=>a+Number(r.amount||0),0);
@@ -21,13 +21,13 @@ $("moduleContent").innerHTML='<div class="toolbar"><button id="addRecord" class=
 $("addRecord").onclick=()=>form(m);return;
 }
   if(m.id==="staff"){
-   const canManage=["executive_director","executive director","Executive Director"].includes(String(profile.role).trim());
+   const canManage=normalizedRole()==="executive_director";
    const body=rows.map(r=>'<tr><td>'+esc(r.full_name)+'</td><td>'+esc(r.position)+'</td><td>'+esc(r.department||r.programme||"")+'</td><td>'+esc(r.email||"")+'</td><td>'+esc(r.phone||"")+'</td><td>'+esc(r.role||"")+'</td><td>'+esc(r.status||"active")+'</td></tr>').join("");
    $("moduleContent").innerHTML=(canManage?'<div class="toolbar"><button id="addRecord" class="btn primary">Add staff profile</button></div>':"")+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Position</th><th>Department / Programme</th><th>Email</th><th>Phone</th><th>Portal role</th><th>Status</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No staff profiles have been added yet.</div>');
    if(canManage)$("addRecord").onclick=()=>form(m);else $("moduleContent").insertAdjacentHTML("afterbegin",'<p class="notice">Staff profile creation is restricted to the Executive Director. Your profile role is: '+esc(profile.role)+'</p>');return;
   }
   if(m.id==="reports"){
-   const canReview=["executive_director","secretary"].includes(profile.role);
+   const canReview=["executive_director","secretary"].includes(normalizedRole());
    const body=rows.map(r=>'<tr><td>'+esc(r.programme)+'</td><td>'+esc(r.reporting_month)+'</td><td>'+esc(r.summary)+'</td><td>'+esc(r.status||"submitted")+'</td><td>'+(canReview?'<select data-report-status="'+esc(r.id)+'"><option value="submitted">Submitted</option><option value="under_review">Under review</option><option value="approved">Approved</option><option value="returned">Returned</option></select><textarea data-report-note="'+esc(r.id)+'" placeholder="Management feedback">'+esc(r.management_feedback||"")+'</textarea><button class="btn primary" data-save-report="'+esc(r.id)+'">Save review</button>':'View only')+'</td></tr>').join("");
    $("moduleContent").innerHTML='<div class="toolbar"><button id="addRecord" class="btn primary">Submit monthly report</button></div>'+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Programme</th><th>Month</th><th>Summary</th><th>Status</th><th>Review</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No reports have been submitted yet.</div>');
    $("addRecord").onclick=()=>form(m);
