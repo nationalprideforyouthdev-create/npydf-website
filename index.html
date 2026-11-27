@@ -124,7 +124,7 @@ async function loadAuthenticatedProfile(user){
  if(error||!profile||profile.active!==true||!permissionByRole[profile.role]){await supabaseClient.auth.signOut();throw new Error('Your account does not have an active NPYDF staff profile. Contact the Executive Director.')}
  currentUser={id:user.id,name:profile.full_name,role:profile.role,username:user.email?.split('@')[0]||'',...permissionByRole[profile.role]};
 }
-async async function login(e){
+async function login(e){
  e.preventDefault();
  const err=document.getElementById('loginError');err.textContent='Signing in securely…';
  const f=new FormData(e.target),username=String(f.get('username')||'').trim().toLowerCase(),password=String(f.get('password')||'');
@@ -139,8 +139,8 @@ async function restoreAuthSession(){
  try{await loadAuthenticatedProfile(data.session.user);if(location.hash==='#admin'||location.hash==='#admin-login')go('admin')}catch(e){document.getElementById('loginError').textContent=e.message}
 }
 async function logout(){await supabaseClient.auth.signOut();currentUser=null;currentAdmin='dashboard';go('home')}
-const adminPages=[['dashboard','Dashboard'],['members','Members'],['finance','Finance'],['hrm','HRM'],['forms','55 Forms'],['news','News'],['gallery','Gallery'],['docs','Docs'],['messages','Messages'],['projects','Projects']];
-function renderAdmin(){if(!currentUser)return;document.getElementById('adminWelcome').textContent='Signed in: '+currentUser.name+' • '+currentUser.role;const visible=currentUser.finance&&currentUser.hrm?adminPages:adminPages.filter(([id])=>['dashboard','forms'].includes(id));if(!visible.some(([id])=>id===currentAdmin))currentAdmin='dashboard';document.getElementById('adminNav').innerHTML=visible.map(([id,n])=>'<button class="'+(id===currentAdmin?'selected':'')+'" onclick="adminGo(\''+id+'\')">'+n+'</button>').join('');adminGo(currentAdmin)}
+const adminPages=[['dashboard','Dashboard'],['reports','Monthly Reports'],['members','Members'],['finance','Finance'],['hrm','HRM'],['forms','55 Forms'],['news','News'],['gallery','Gallery'],['docs','Docs'],['messages','Messages'],['projects','Projects']];
+function renderAdmin(){if(!currentUser)return;document.getElementById('adminWelcome').textContent='Signed in: '+currentUser.name+' • '+currentUser.role;const visible=currentUser.finance&&currentUser.hrm?adminPages:adminPages.filter(([id])=>['dashboard','forms','reports'].includes(id));if(!visible.some(([id])=>id===currentAdmin))currentAdmin='dashboard';document.getElementById('adminNav').innerHTML=visible.map(([id,n])=>'<button class="'+(id===currentAdmin?'selected':'')+'" onclick="adminGo(\''+id+'\')">'+n+'</button>').join('');adminGo(currentAdmin)}
 function slugify(v){return String(v||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g)}
 function contentUrl(type,slug){return location.origin+location.pathname+'#'+type+'/'+slug}
 async function openContent(type,slug){
@@ -180,7 +180,8 @@ async function adminGo(id){
  if(!currentUser)return;
  if(!(currentUser.finance&&currentUser.hrm)&&!['dashboard','forms'].includes(id)){id='dashboard';}
  currentAdmin=id;
- const visible=currentUser.finance&&currentUser.hrm?adminPages:adminPages.filter(([key])=>['dashboard','forms'].includes(key));
+ if(id==='reports'){window.location.href='./monthly-reports.html';return;}
+ const visible=currentUser.finance&&currentUser.hrm?adminPages:adminPages.filter(([key])=>['dashboard','forms','reports'].includes(key));
  document.getElementById('adminNav').innerHTML=visible.map(([k,n])=>'<button class="'+(k===id?'selected':'')+'" onclick="adminGo(\''+k+'\')">'+n+'</button>').join('');
  const c=document.getElementById('adminContent');
  if(id==='dashboard')c.innerHTML=await dashboardHTML();
