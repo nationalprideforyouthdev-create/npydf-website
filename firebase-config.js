@@ -1,3 +1,12 @@
-/* Replace with Firebase Console > Project settings > Your apps web config. Never place service-account secrets here. */
-export const firebaseConfig={apiKey:"PASTE_FIREBASE_WEB_API_KEY",authDomain:"YOUR_PROJECT_ID.firebaseapp.com",projectId:"YOUR_PROJECT_ID",storageBucket:"YOUR_PROJECT_ID.appspot.com",messagingSenderId:"YOUR_MESSAGING_SENDER_ID",appId:"YOUR_FIREBASE_APP_ID"};
-export const isFirebaseConfigured=!Object.values(firebaseConfig).some(v=>String(v).startsWith("PASTE_")||String(v).startsWith("YOUR_"));
+/* Public Firebase Web App configuration for NPYDF Admin Portal.
+   Never place Firebase service-account credentials or private keys in this file. */
+export const firebaseConfig = {
+  apiKey: "AIzaSyCpzljt3wF6dz8bXm5hUQkZJAIk3EQRSJs",
+  authDomain: "npydf-admin.firebaseapp.com",
+  projectId: "npydf-admin",
+  storageBucket: "npydf-admin.firebasestorage.app",
+  messagingSenderId: "119717455379",
+  appId: "1:119717455379:web:3c970c0602f40bd5e581e6",
+  measurementId: "G-TEBD0Y3GXT"
+};
+export const isFirebaseConfigured = true;
