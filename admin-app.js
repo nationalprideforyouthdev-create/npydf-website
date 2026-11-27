@@ -14,6 +14,15 @@ async function load(m){
   const s=await getDocs(query(collection(db,m.collection),orderBy("created_at","desc"),limit(50)));
   const rows=s.docs.map(d=>({id:d.id,...d.data()}));
   const add=["reports","activities"].includes(m.id)|| (m.id==="applications"&&["executive_director","secretary"].includes(profile.role));
+  if(m.id==="reports"){
+   const canReview=["executive_director","secretary"].includes(profile.role);
+   const body=rows.map(r=>'<tr><td>'+esc(r.programme)+'</td><td>'+esc(r.reporting_month)+'</td><td>'+esc(r.summary)+'</td><td>'+esc(r.status||"submitted")+'</td><td>'+(canReview?'<select data-report-status="'+esc(r.id)+'"><option value="submitted">Submitted</option><option value="under_review">Under review</option><option value="approved">Approved</option><option value="returned">Returned</option></select><textarea data-report-note="'+esc(r.id)+'" placeholder="Management feedback">'+esc(r.management_feedback||"")+'</textarea><button class="btn primary" data-save-report="'+esc(r.id)+'">Save review</button>':'View only')+'</td></tr>').join("");
+   $("moduleContent").innerHTML='<div class="toolbar"><button id="addRecord" class="btn primary">Submit monthly report</button></div>'+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Programme</th><th>Month</th><th>Summary</th><th>Status</th><th>Review</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No reports have been submitted yet.</div>');
+   $("addRecord").onclick=()=>form(m);
+   $("moduleContent").querySelectorAll("[data-report-status]").forEach(x=>{x.value=rows.find(r=>r.id===x.dataset.reportStatus)?.status||"submitted"});
+   $("moduleContent").querySelectorAll("[data-save-report]").forEach(b=>b.onclick=()=>saveReportReview(b.dataset.saveReport));
+   return;
+  }
   if(m.id==="applications"){
    const canReview=["executive_director","secretary"].includes(profile.role);
    const body=rows.map(r=>'<tr><td>'+esc(r.applicant_name)+'</td><td>'+esc(r.programme)+'</td><td>'+esc(r.contact)+'</td><td>'+esc(r.status||"submitted")+'</td><td>'+(canReview?'<select data-status="'+esc(r.id)+'"><option value="submitted">Submitted</option><option value="under_review">Under review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><label>Assessment score (0–100)<input data-score="'+esc(r.id)+'" type="number" min="0" max="100" value="'+esc(r.assessment_score??"")+'"></label><textarea data-note="'+esc(r.id)+'" placeholder="Assessment notes">'+esc(r.review_notes||"")+'</textarea><textarea data-reason="'+esc(r.id)+'" placeholder="Decision reason (required for approval/rejection)">'+esc(r.decision_reason||"")+'</textarea><button class="btn primary" data-save-review="'+esc(r.id)+'">Save review</button>':'View only')+'</td></tr>').join("");
@@ -28,6 +37,11 @@ async function load(m){
   $("moduleContent").innerHTML=(add?'<div class="toolbar"><button id="addRecord" class="btn primary">Add new record</button></div>':"")+t;
   if(add)$("addRecord").onclick=()=>form(m);
  }catch(e){$("moduleContent").innerHTML='<div class="notice">Could not load this workspace. Check Firestore rules and permissions. '+esc(e.message)+'</div>'}
+}
+async function saveReportReview(id){
+ const root=$("moduleContent");const status=root.querySelector('[data-report-status="'+CSS.escape(id)+'"]')?.value;const feedback=root.querySelector('[data-report-note="'+CSS.escape(id)+'"]')?.value.trim()||"";
+ if(!["submitted","under_review","approved","returned"].includes(status))return;if(status==="returned"&&!feedback){alert("Add feedback explaining why the report is being returned.");return}
+ try{await updateDoc(doc(db,"monthly_reports",id),{status,management_feedback:feedback,reviewed_by:auth.currentUser.uid,reviewed_by_name:profile.full_name,reviewed_at:serverTimestamp(),updated_at:serverTimestamp()});await load(mods.find(x=>x.id==="reports"))}catch(e){alert("Report review could not be saved: "+e.message)}
 }
 async function saveApplicationReview(id){
  const root=$("moduleContent");
