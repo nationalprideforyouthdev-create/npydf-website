@@ -15,10 +15,10 @@ async function load(m){
   const rows=s.docs.map(d=>({id:d.id,...d.data()}));
   const add=["reports","activities"].includes(m.id)|| (m.id==="applications"&&["executive_director","secretary"].includes(profile.role));
   if(m.id==="staff"){
-   const canManage=profile.role==="executive_director";
+   const canManage=["executive_director","executive director","Executive Director"].includes(String(profile.role).trim());
    const body=rows.map(r=>'<tr><td>'+esc(r.full_name)+'</td><td>'+esc(r.position)+'</td><td>'+esc(r.department||r.programme||"")+'</td><td>'+esc(r.email||"")+'</td><td>'+esc(r.phone||"")+'</td><td>'+esc(r.role||"")+'</td><td>'+esc(r.status||"active")+'</td></tr>').join("");
    $("moduleContent").innerHTML=(canManage?'<div class="toolbar"><button id="addRecord" class="btn primary">Add staff profile</button></div>':"")+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Position</th><th>Department / Programme</th><th>Email</th><th>Phone</th><th>Portal role</th><th>Status</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No staff profiles have been added yet.</div>');
-   if(canManage)$("addRecord").onclick=()=>form(m);return;
+   if(canManage)$("addRecord").onclick=()=>form(m);else $("moduleContent").insertAdjacentHTML("afterbegin",'<p class="notice">Staff profile creation is restricted to the Executive Director. Your profile role is: '+esc(profile.role)+'</p>');return;
   }
   if(m.id==="reports"){
    const canReview=["executive_director","secretary"].includes(profile.role);
