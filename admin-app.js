@@ -16,7 +16,7 @@ async function load(m){
   const add=["reports","activities"].includes(m.id)|| (m.id==="applications"&&["executive_director","secretary"].includes(profile.role));
   if(m.id==="applications"){
    const canReview=["executive_director","secretary"].includes(profile.role);
-   const body=rows.map(r=>'<tr><td>'+esc(r.applicant_name)+'</td><td>'+esc(r.programme)+'</td><td>'+esc(r.contact)+'</td><td>'+esc(r.status||"submitted")+'</td><td>'+(canReview?'<select data-status="'+esc(r.id)+'"><option value="submitted">Submitted</option><option value="under_review">Under review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><textarea data-note="'+esc(r.id)+'" placeholder="Review notes (optional)">'+esc(r.review_notes||"")+'</textarea><button class="btn primary" data-save-review="'+esc(r.id)+'">Save review</button>':'View only')+'</td></tr>').join("");
+   const body=rows.map(r=>'<tr><td>'+esc(r.applicant_name)+'</td><td>'+esc(r.programme)+'</td><td>'+esc(r.contact)+'</td><td>'+esc(r.status||"submitted")+'</td><td>'+(canReview?'<select data-status="'+esc(r.id)+'"><option value="submitted">Submitted</option><option value="under_review">Under review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><label>Assessment score (0–100)<input data-score="'+esc(r.id)+'" type="number" min="0" max="100" value="'+esc(r.assessment_score??"")+'"></label><textarea data-note="'+esc(r.id)+'" placeholder="Assessment notes">'+esc(r.review_notes||"")+'</textarea><textarea data-reason="'+esc(r.id)+'" placeholder="Decision reason (required for approval/rejection)">'+esc(r.decision_reason||"")+'</textarea><button class="btn primary" data-save-review="'+esc(r.id)+'">Save review</button>':'View only')+'</td></tr>').join("");
    $("moduleContent").innerHTML=(add?'<div class="toolbar"><button id="addRecord" class="btn primary">Add new application</button></div>':"")+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Programme</th><th>Contact</th><th>Status</th><th>Review action</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No applications have been recorded yet.</div>');
    if(add)$("addRecord").onclick=()=>form(m);
    $("moduleContent").querySelectorAll("[data-status]").forEach(x=>{x.value=rows.find(r=>r.id===x.dataset.status)?.status||"submitted"});
@@ -30,10 +30,16 @@ async function load(m){
  }catch(e){$("moduleContent").innerHTML='<div class="notice">Could not load this workspace. Check Firestore rules and permissions. '+esc(e.message)+'</div>'}
 }
 async function saveApplicationReview(id){
- const status=$("moduleContent").querySelector('[data-status="'+CSS.escape(id)+'"]')?.value;
- const notes=$("moduleContent").querySelector('[data-note="'+CSS.escape(id)+'"]')?.value.trim()||"";
+ const root=$("moduleContent");
+ const status=root.querySelector('[data-status="'+CSS.escape(id)+'"]')?.value;
+ const notes=root.querySelector('[data-note="'+CSS.escape(id)+'"]')?.value.trim()||"";
+ const reason=root.querySelector('[data-reason="'+CSS.escape(id)+'"]')?.value.trim()||"";
+ const scoreText=root.querySelector('[data-score="'+CSS.escape(id)+'"]')?.value;
+ const score=scoreText===""?null:Number(scoreText);
  if(!["submitted","under_review","approved","rejected"].includes(status))return;
- try{await updateDoc(doc(db,"applications",id),{status,review_notes:notes,reviewed_by:auth.currentUser.uid,reviewed_at:serverTimestamp(),updated_at:serverTimestamp()});await load(mods.find(x=>x.id==="applications"))}
+ if(score!==null&&(!Number.isFinite(score)||score<0||score>100)){alert("Assessment score must be between 0 and 100.");return}
+ if(["approved","rejected"].includes(status)&&!reason){alert("Enter a decision reason before approving or rejecting this application.");return}
+ try{await updateDoc(doc(db,"applications",id),{status,review_notes:notes,assessment_score:score,decision_reason:reason,reviewed_by:auth.currentUser.uid,reviewed_by_name:profile.full_name,reviewed_at:serverTimestamp(),updated_at:serverTimestamp()});await load(mods.find(x=>x.id==="applications"))}
  catch(e){alert("Review could not be saved: "+e.message)}
 }
 function form(m){const fields=m.id==="reports"?[["programme","Programme"],["reporting_month","Reporting month"],["summary","Summary"],["outputs","Outputs delivered"],["challenges","Challenges"],["next_steps","Next steps"]]:m.id==="applications"?[["applicant_name","Applicant name"],["programme","Programme"],["contact","Contact"]]:[["programme","Programme"],["activity_date","Activity date"],["activity","Activity"],["participants","Participants"],["outcomes","Outcomes"]];$("moduleContent").innerHTML='<form id="entryForm"><div class="formgrid">'+fields.map(([k,l])=>'<label>'+l+(['summary','outputs','challenges','next_steps','outcomes','activity'].includes(k)?'<textarea name="'+k+'" required></textarea>':'<input name="'+k+'" '+(k==="participants"?'type="number" min="0"':'')+' required>')+'</label>').join("")+'</div><div class="form-actions"><button type="button" id="cancelEntry" class="btn outline">Cancel</button><button class="btn primary">Save record</button></div><p id="saveError" class="error"></p></form>';$("cancelEntry").onclick=()=>open(m.id);$("entryForm").onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));if(d.participants)d.participants=Number(d.participants);if(m.id==="applications")d.status="submitted";try{await addDoc(collection(db,m.collection),{...d,status:d.status||"submitted",created_by:auth.currentUser.uid,created_at:serverTimestamp(),updated_at:serverTimestamp()});await load(m);await stats()}catch(err){$("saveError").textContent="Save failed: "+err.message}}}
