@@ -11,6 +11,7 @@ service cloud.firestore {
   match /applications/{id}{allow read:if roleIn(['executive_director','secretary','project_lead']);allow create:if roleIn(['executive_director','secretary','project_lead']);allow update:if roleIn(['executive_director','secretary']);allow delete:if ed();}
   match /monthly_reports/{id}{allow read:if active();allow create:if active()&&request.resource.data.created_by==request.auth.uid;allow update:if roleIn(['executive_director','secretary']);allow delete:if ed();}
   match /finance_entries/{id}{allow read,create,update:if roleIn(['executive_director','treasurer']);allow delete:if ed();}
+  match /budgets/{id}{allow read:if roleIn(['executive_director','treasurer']);allow create:if ed()&&request.resource.data.created_by==request.auth.uid;allow update,delete:if ed();}
   match /staff_records/{id}{allow read:if roleIn(['executive_director','secretary']);allow create,update,delete:if ed();}
   match /programme_activities/{id}{allow read:if active();allow create:if active()&&request.resource.data.created_by==request.auth.uid;allow update:if roleIn(['executive_director','secretary','project_lead']);allow delete:if ed();}
   match /{document=**}{allow read,write:if false;}
