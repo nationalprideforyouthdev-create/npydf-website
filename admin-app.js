@@ -12,7 +12,7 @@ async function open(id){const m=mods.find(x=>x.id===id&&permitted(x));if(!m)retu
 async function load(m){
  $("moduleContent").innerHTML='<p class="muted">Loading records…</p>';
  try{
-  const s=await getDocs(m.id==="finance"?query(collection(db,m.collection),orderBy("created_at","desc")):query(collection(db,m.collection),orderBy("created_at","desc"),limit(50)));
+  const s=await getDocs(["finance","finance_reports"].includes(m.id)?query(collection(db,m.collection),orderBy("created_at","desc")):query(collection(db,m.collection),orderBy("created_at","desc"),limit(50)));
   const allRows=s.docs.map(d=>({id:d.id,...d.data()}));
   const rows=m.id==="finance"?allRows.slice(0,50):allRows;
   const add=["reports","activities","finance"].includes(m.id)|| (m.id==="applications"&&["executive_director","secretary"].includes(normalizedRole()));
