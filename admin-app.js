@@ -85,9 +85,25 @@ $("addRecord").onclick=()=>form(m);$("moduleContent").querySelectorAll("[data-ap
   }
   if(m.id==="staff"){
    const canManage=normalizedRole()==="executive_director";
-   const body=rows.map(r=>'<tr><td>'+esc(r.full_name)+'</td><td>'+esc(r.position)+'</td><td>'+esc(r.department||r.programme||"")+'</td><td>'+esc(r.email||"")+'</td><td>'+esc(r.phone||"")+'</td><td>'+esc(r.role||"")+'</td><td>'+esc(r.status||"active")+'</td></tr>').join("");
-   $("moduleContent").innerHTML=(canManage?'<div class="toolbar"><button id="addRecord" class="btn primary">Add staff profile</button></div>':"")+(rows.length?'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Position</th><th>Department / Programme</th><th>Email</th><th>Phone</th><th>Portal role</th><th>Status</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No staff profiles have been added yet.</div>');
-   if(canManage)$("addRecord").onclick=()=>form(m);else $("moduleContent").insertAdjacentHTML("afterbegin",'<p class="notice">Staff profile creation is restricted to the Executive Director. Your profile role is: '+esc(profile.role)+'</p>');return;
+   const root=$("moduleContent");
+   root.innerHTML=(canManage?'<div class="toolbar"><button id="addRecord" class="btn primary">Add staff profile</button></div>':"")+'<div class="formgrid"><label>Search staff<input id="staffSearch" type="search" placeholder="Search name, email, position or department"></label><label>Employment status<select id="staffStatusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label></div><p id="staffCount" class="tiny"></p><div id="staffTable"></div>';
+   if(canManage)$("addRecord").onclick=()=>form(m);else root.insertAdjacentHTML("afterbegin",'<p class="notice">Staff profile creation and editing are restricted to the Executive Director. Your profile role is: '+esc(profile.role)+'</p>');
+   const renderStaff=()=>{
+    const term=$("staffSearch").value.trim().toLowerCase(),status=$("staffStatusFilter").value;
+    const filtered=rows.filter(r=>[r.full_name,r.email,r.position,r.department,r.programme,r.phone,r.role].some(v=>String(v||"").toLowerCase().includes(term))&&(!status||String(r.status||"active").toLowerCase()===status));
+    $("staffCount").textContent="Showing "+filtered.length+" of "+rows.length+" staff record(s).";
+    const body=filtered.map(r=>'<tr><td>'+esc(r.full_name||"—")+'</td><td>'+esc(r.position||"—")+'</td><td>'+esc(r.department||r.programme||"—")+'</td><td>'+esc(r.email||"—")+'</td><td>'+esc(r.phone||"—")+'</td><td>'+esc(labels[r.role]||r.role||"—")+'</td><td>'+esc(r.status||"active")+'</td>'+(canManage?'<td><button class="btn outline" data-edit-staff="'+esc(r.id)+'">Edit</button></td>':"")+'</tr>').join("");
+    $("staffTable").innerHTML=filtered.length?'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Position</th><th>Department / Programme</th><th>Email</th><th>Phone</th><th>Portal role</th><th>Status</th>'+(canManage?'<th>Action</th>':"")+'</tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No staff records match your search.</div>';
+    if(canManage)$("staffTable").querySelectorAll("[data-edit-staff]").forEach(b=>b.onclick=()=>editStaff(rows.find(r=>r.id===b.dataset.editStaff)));
+   };
+   const editStaff=record=>{
+    if(!record)return;
+    const fields=[["full_name","Full name"],["position","Position"],["department","Department / Programme"],["email","Email address"],["phone","Phone number"]];
+    root.innerHTML='<h3 class="finance-heading">Edit staff profile</h3><form id="editStaffForm"><div class="formgrid">'+fields.map(([k,label])=>'<label>'+label+'<input name="'+k+'" '+(k==="email"?'type="email"':"")+' value="'+esc(record[k]??(k==="department"?record.programme??"": ""))+'" '+(["full_name","position"].includes(k)?"required":"")+'></label>').join("")+'<label>Portal role<select name="role">'+Object.entries(labels).map(([k,v])=>'<option value="'+k+'" '+(record.role===k?"selected":"")+'>'+v+'</option>').join("")+'</select></label><label>Employment status<select name="status"><option value="active" '+((record.status||"active")==="active"?"selected":"")+'>Active</option><option value="inactive" '+(record.status==="inactive"?"selected":"")+' >Inactive</option></select></label></div><div class="form-actions"><button type="button" id="cancelStaffEdit" class="btn outline">Cancel</button><button class="btn primary">Save changes</button></div><p id="staffEditError" class="error"></p></form>';
+    $("cancelStaffEdit").onclick=()=>load(m);
+    $("editStaffForm").onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target));try{await updateDoc(doc(db,"staff_records",record.id),{...data,updated_at:serverTimestamp()});await load(m)}catch(err){$("staffEditError").textContent="Staff update failed: "+err.message}};
+   };
+   $("staffSearch").oninput=renderStaff;$("staffStatusFilter").onchange=renderStaff;renderStaff();return;
   }
   if(m.id==="reports"){
    const canReview=["executive_director","secretary"].includes(normalizedRole());
