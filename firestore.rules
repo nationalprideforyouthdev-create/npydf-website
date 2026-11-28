@@ -7,14 +7,17 @@ service cloud.firestore {
   function active(){return hasProfile() && p().active == true;}
   function roleIn(roles){return active() && p().role in roles;}
   function ed(){return roleIn(['executive_director']);}
+  function moduleAccess(key){return active() && (p().role == 'executive_director' || (p().keys().hasAny(['access_modules']) && p().access_modules is list && p().access_modules.hasAny([key])));}
   match /profiles/{uid}{
    allow read:if signedIn()&&(request.auth.uid==uid||ed());
    allow create,delete:if false;
    allow update:if ed()
     && uid!=request.auth.uid
-    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role','active','updated_at'])
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role','active','access_modules','updated_at'])
     && request.resource.data.role in ['executive_director','secretary','treasurer','project_lead','staff']
     && request.resource.data.active is bool
+    && request.resource.data.access_modules is list
+    && request.resource.data.access_modules.hasOnly(['project_management','fundraising','operations'])
     && request.resource.data.updated_at==request.time;
   }
   match /applications/{id}{allow read:if roleIn(['executive_director','secretary','project_lead']);allow create:if roleIn(['executive_director','secretary','project_lead']);allow update:if roleIn(['executive_director','secretary']);allow delete:if ed();}
@@ -23,6 +26,9 @@ service cloud.firestore {
   match /budgets/{id}{allow read:if roleIn(['executive_director','treasurer']);allow create:if ed()&&request.resource.data.created_by==request.auth.uid;allow update,delete:if ed();}
   match /staff_records/{id}{allow read:if roleIn(['executive_director','secretary']);allow create,update,delete:if ed();}
   match /programme_activities/{id}{allow read:if active();allow create:if active()&&request.resource.data.created_by==request.auth.uid;allow update:if roleIn(['executive_director','secretary','project_lead']);allow delete:if ed();}
+  match /project_management_records/{id}{allow read:if moduleAccess('project_management');allow create:if moduleAccess('project_management')&&request.resource.data.created_by==request.auth.uid;allow update:if moduleAccess('project_management');allow delete:if ed();}
+  match /fundraising_records/{id}{allow read:if moduleAccess('fundraising');allow create:if moduleAccess('fundraising')&&request.resource.data.created_by==request.auth.uid;allow update:if moduleAccess('fundraising');allow delete:if ed();}
+  match /operations_records/{id}{allow read:if moduleAccess('operations');allow create:if moduleAccess('operations')&&request.resource.data.created_by==request.auth.uid;allow update:if moduleAccess('operations');allow delete:if ed();}
   match /{document=**}{allow read,write:if false;}
  }
 }
