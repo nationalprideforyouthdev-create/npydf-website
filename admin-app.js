@@ -92,8 +92,20 @@ $("addRecord").onclick=()=>form(m);$("moduleContent").querySelectorAll("[data-ap
     const term=$("staffSearch").value.trim().toLowerCase(),status=$("staffStatusFilter").value;
     const filtered=rows.filter(r=>[r.full_name,r.email,r.position,r.department,r.programme,r.phone,r.role].some(v=>String(v||"").toLowerCase().includes(term))&&(!status||String(r.status||"active").toLowerCase()===status));
     $("staffCount").textContent="Showing "+filtered.length+" of "+rows.length+" staff record(s).";
-    const body=filtered.map(r=>'<tr><td>'+esc(r.full_name||"—")+'</td><td>'+esc(r.position||"—")+'</td><td>'+esc(r.department||r.programme||"—")+'</td><td>'+esc(r.email||"—")+'</td><td>'+esc(r.phone||"—")+'</td><td>'+esc(labels[r.role]||r.role||"—")+'</td><td>'+esc(r.status||"active")+'</td>'+(canManage?'<td><button class="btn outline" data-edit-staff="'+esc(r.id)+'">Edit</button></td>':"")+'</tr>').join("");
-    $("staffTable").innerHTML=filtered.length?'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Position</th><th>Department / Programme</th><th>Email</th><th>Phone</th><th>Portal role</th><th>Status</th>'+(canManage?'<th>Action</th>':"")+'</tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No staff records match your search.</div>';
+    const body=filtered.map(r=>'<tr><td>'+esc(r.full_name||"—")+'</td><td>'+esc(r.position||"—")+'</td><td>'+esc(r.department||r.programme||"—")+'</td><td>'+esc(r.email||"—")+'</td><td>'+esc(r.phone||"—")+'</td><td>'+esc(labels[r.role]||r.role||"—")+'</td><td>'+esc(r.status||"active")+'</td><td><button class="btn outline" data-view-staff="'+esc(r.id)+'">View</button>'+(canManage?' <button class="btn outline" data-edit-staff="'+esc(r.id)+'">Edit</button>':"")+'</td></tr>').join("");
+    $("staffTable").innerHTML=filtered.length?'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Position</th><th>Department / Programme</th><th>Email</th><th>Phone</th><th>Portal role</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No staff records match your search.</div>';
+    $("staffTable").querySelectorAll("[data-view-staff]").forEach(b=>b.onclick=()=>{
+     const record=rows.find(r=>r.id===b.dataset.viewStaff);if(!record)return;
+     const old=$("staffTable").querySelector('[data-staff-details="'+record.id+'"]');
+     if(old){old.remove();b.textContent="View";return;}
+     $("staffTable").querySelectorAll("[data-staff-details]").forEach(x=>x.remove());
+     $("staffTable").querySelectorAll("[data-view-staff]").forEach(x=>x.textContent="View");
+     const detailFields=[["full_name","Full name"],["position","Position"],["department","Department"],["programme","Programme"],["email","Email address"],["phone","Phone number"],["role","Portal role"],["status","Employment status"]];
+     const detailHtml=detailFields.filter(([k])=>record[k]!==undefined&&record[k]!==null&&record[k]!=="").map(([k,label])=>'<p><strong>'+label+':</strong> '+esc(k==="role"?(labels[record[k]]||record[k]):record[k])+'</p>').join("");
+     const tr=document.createElement("tr");tr.dataset.staffDetails=record.id;
+     tr.innerHTML='<td colspan="8"><div class="notice"><strong>Staff profile details</strong>'+detailHtml+'</div></td>';
+     b.closest("tr").insertAdjacentElement("afterend",tr);b.textContent="Hide";
+    });
     if(canManage)$("staffTable").querySelectorAll("[data-edit-staff]").forEach(b=>b.onclick=()=>editStaff(rows.find(r=>r.id===b.dataset.editStaff)));
    };
    const editStaff=record=>{
