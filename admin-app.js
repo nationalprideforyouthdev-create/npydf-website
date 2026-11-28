@@ -12,7 +12,14 @@ async function open(id){const m=mods.find(x=>x.id===id&&permitted(x));if(!m)retu
 async function load(m){
  $("moduleContent").innerHTML='<p class="muted">Loading records…</p>';
  try{
-  let allRows=[],budgetExpenses=[];
+  const snapshot=await getDocs(collection(db,m.collection));
+  let allRows=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  const rows=allRows.slice(0,50);
+  let budgetExpenses=[];
+  if(m.id==="budgets"){
+   const expenseSnapshot=await getDocs(collection(db,"finance_entries"));
+   budgetExpenses=expenseSnapshot.docs.map(d=>({id:d.id,...d.data()}));
+  }
   if(m.id==="budgets"){
    const canManage=normalizedRole()==="executive_director";
    const money=n=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
