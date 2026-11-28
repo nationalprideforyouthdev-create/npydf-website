@@ -10,11 +10,13 @@ function nav(){$("nav").innerHTML=mods.filter(permitted).map(m=>'<button class="
 async function stats(){const pairs=[["Applications","applications"],["Monthly reports","monthly_reports"],["Finance entries","finance_entries"],["Programme activities","programme_activities"]];const counts=await Promise.all(pairs.map(async p=>{try{return(await getCountFromServer(collection(db,p[1]))).data().count}catch{return"—"}}));$("stats").innerHTML=pairs.map((p,i)=>'<div class="stat"><strong>'+counts[i]+'</strong><span>'+p[0]+'</span></div>').join("")}
 async function open(id){const m=mods.find(x=>x.id===id&&permitted(x));if(!m)return;active=id;nav();$("moduleTitle").textContent=m.label;$("moduleDesc").textContent=m.desc;if(id==="overview"){$("moduleContent").innerHTML='<div class="empty"><h3>Welcome, '+esc(profile.full_name)+'</h3><p>Your account is active with '+esc(labels[profile.role])+' permissions. Select a workspace to continue.</p></div>';return}await load(m)}
 async function load(m){
+ let rows=[];
+ const add=m.id==="applications"?["executive_director","secretary"].includes(normalizedRole()):true;
  $("moduleContent").innerHTML='<p class="muted">Loading records…</p>';
  try{
   const snapshot=await getDocs(collection(db,m.collection));
   let allRows=snapshot.docs.map(d=>({id:d.id,...d.data()}));
-  const rows=allRows.slice(0,50);
+  rows=allRows.slice(0,50);
   let budgetExpenses=[];
   if(m.id==="budgets"){
    const expenseSnapshot=await getDocs(collection(db,"finance_entries"));
