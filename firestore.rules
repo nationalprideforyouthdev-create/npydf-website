@@ -7,7 +7,16 @@ service cloud.firestore {
   function active(){return hasProfile() && p().active == true;}
   function roleIn(roles){return active() && p().role in roles;}
   function ed(){return roleIn(['executive_director']);}
-  match /profiles/{uid}{allow read:if signedIn()&&(request.auth.uid==uid||ed());allow create,update,delete:if ed();}
+  match /profiles/{uid}{
+   allow read:if signedIn()&&(request.auth.uid==uid||ed());
+   allow create,delete:if false;
+   allow update:if ed()
+    && uid!=request.auth.uid
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role','active','updated_at'])
+    && request.resource.data.role in ['executive_director','secretary','treasurer','project_lead','staff']
+    && request.resource.data.active is bool
+    && request.resource.data.updated_at==request.time;
+  }
   match /applications/{id}{allow read:if roleIn(['executive_director','secretary','project_lead']);allow create:if roleIn(['executive_director','secretary','project_lead']);allow update:if roleIn(['executive_director','secretary']);allow delete:if ed();}
   match /monthly_reports/{id}{allow read:if active();allow create:if active()&&request.resource.data.created_by==request.auth.uid;allow update:if roleIn(['executive_director','secretary']);allow delete:if ed();}
   match /finance_entries/{id}{allow read,create,update:if roleIn(['executive_director','treasurer']);allow delete:if ed();}
